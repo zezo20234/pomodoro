@@ -48,6 +48,53 @@ input,select{background:var(--card);border:1px solid var(--line);border-radius:v
 .sb{margin:6px 0}.sb i{display:block;height:6px;background:var(--focus);border-radius:3px;margin-top:2px}
 .err{color:#c0392b;font-size:13px;min-height:18px}
 .hide{display:none!important}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3f5;--card:#fff;--ink:#14202b;--mute:#6a7885;--line:#e1e8ed;--focus:#0d9488;--brk:#e08a1e;--on:#fff;--sh:0 1px 2px rgba(20,32,43,.05),0 10px 28px rgba(20,32,43,.06)}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1317;--card:#151d23;--ink:#e8eef2;--mute:#8d9aa5;--line:#25303a;--focus:#2dd4bf;--brk:#fbbf24;--on:#032421;--sh:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.25)}}
+body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:var(--bg)}
+main{padding-bottom:110px}
+h1{font-size:19px;letter-spacing:-.01em}
+.card{border:0;border-radius:20px;box-shadow:var(--sh);padding:20px}
+.btn{border-radius:999px;padding:10px 20px;font-weight:600;transition:transform .1s}
+.btn:active{transform:scale(.97)}
+.btn.alt{border-color:var(--line);background:var(--card)}
+input,select{border-radius:14px;background:var(--bg);border:1px solid transparent;padding:11px 14px}
+input:focus{border-color:var(--focus);outline:0}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:5;margin:0;justify-content:center;gap:6px;padding:8px 14px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card) 85%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+nav button{flex:1;max-width:170px;border:0;border-radius:14px;padding:11px;font-weight:600}
+nav button.on{background:var(--ink);color:var(--card);border:0}
+.ring{position:relative;width:min(76vw,300px);aspect-ratio:1;margin:4px auto 10px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:9}
+.ring .tr{stroke:var(--line)}
+.ring .ar{stroke:var(--focus);stroke-linecap:round;stroke-dasharray:628.32;stroke-dashoffset:0;transition:stroke-dashoffset .5s linear,stroke .3s}
+.ring.brk .ar{stroke:var(--brk)}
+.ring .mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#clk{font-size:clamp(48px,16vw,68px);font-weight:500;letter-spacing:-.04em;line-height:1}
+#ph{font-size:14px;font-weight:700}
+#sub{font-size:13px;min-height:19px}
+.modes{background:var(--bg);padding:4px;border-radius:999px;gap:0!important}
+.modes button{border:0;background:none;border-radius:999px;padding:9px;font-weight:600;color:var(--mute)}
+.modes button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.14)}
+#go{background:var(--focus);color:var(--on);padding:14px 40px;font-size:17px;min-width:150px}
+.dots{margin:2px 0 16px}.dots i{width:9px;height:9px}
+.mem{border-left:5px solid var(--line)}.mem.focus{border-left-color:var(--focus)}.mem.break{border-left-color:var(--brk)}
+.mem .av{width:38px;height:38px;border-radius:50%;background:var(--focus);color:var(--on);display:grid;place-items:center;font-weight:700;flex:none}
+.mem .t{font-size:34px;font-weight:500;letter-spacing:-.03em;margin-top:6px}
+.sec h2,.card h2{font-size:15px;font-weight:700}
+.lb div:last-child{border-bottom:0}
+#chat p{background:var(--bg);border-radius:14px;padding:8px 12px;display:inline-block;max-width:90%}
+#chat{display:flex;flex-direction:column;align-items:flex-start}
+.kpi b{font-size:26px;letter-spacing:-.02em}
+.bars span{border-radius:8px 8px 3px 3px;background:linear-gradient(var(--focus),color-mix(in srgb,var(--focus) 55%,transparent))}
+.bars div{color:var(--mute)}
+#auth{margin:12vh auto 0!important;padding:28px}
+#auth h1{font-size:26px}
+header{margin-bottom:18px}
+#rf{border-radius:50%;width:38px;height:38px;display:grid;place-items:center;padding:0!important}
 </style></head><body><main>
 <section id="auth" class="card" style="max-width:360px;margin:60px auto">
 <h1>Study Together</h1><p class="mute">Sign in with a username and password. New here? Pick any username and tap Create account.</p>
@@ -63,7 +110,8 @@ input,select{background:var(--card);border:1px solid var(--line);border-radius:v
 
 <section id="t">
 <div class="card">
-<div id="ph" class="mute">Ready</div><div id="clk">25:00</div><div class="dots" id="dots"></div>
+<div class="ring" id="ring"><svg viewBox="0 0 220 220"><circle class="tr" cx="110" cy="110" r="100"/><circle class="ar" id="arc" cx="110" cy="110" r="100"/></svg>
+<div class="mid"><div id="ph" class="mute">Ready</div><div id="clk">25:00</div><div id="sub" class="mute"></div></div></div><div class="dots" id="dots"></div>
 <div class="row modes" id="modes"><button data-m="15/3">15 / 3</button><button data-m="25/5" class="on">25 / 5</button><button data-m="50/10">50 / 10</button></div>
 <div class="row sec"><div style="flex:1;min-width:140px"><label class="mute">Subject</label><input id="subj" list="sl" placeholder="e.g. Math" maxlength="24"><datalist id="sl"></datalist></div>
 <div style="width:110px"><label class="mute">Cycles</label><input id="cyc" type="number" min="1" max="12" value="4"></div></div>
@@ -87,13 +135,12 @@ input,select{background:var(--card);border:1px solid var(--line);border-radius:v
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getDatabase,ref,set,update,push,onValue,onChildAdded,remove,onDisconnect,increment,query,limitToLast} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import {getDatabase,ref,set,get,runTransaction,update,push,onValue,onChildAdded,remove,onDisconnect,increment,query,limitToLast} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import {getAnalytics} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
 const app=initializeApp({apiKey:"AIzaSyAfm1SkQSqwpf-82kWrsTgoiXgk2DMOSpU",authDomain:"retrocallapp.firebaseapp.com",databaseURL:"https://retrocallapp-default-rtdb.firebaseio.com",projectId:"retrocallapp",storageBucket:"retrocallapp.firebasestorage.app",messagingSenderId:"364436629934",appId:"1:364436629934:web:080df2aa03fad1f6fcc03f",measurementId:"G-NJEQGNFND2"});
 try{getAnalytics(app)}catch(e){}
-const auth=getAuth(app),db=getDatabase(app);
+const db=getDatabase(app);
 
 const $=s=>document.querySelector(s),pad=n=>String(n).padStart(2,'0');
 const fmt=s=>{s=Math.max(0,Math.round(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}h ${pad(m)}m`:`${m}m`};
@@ -107,19 +154,53 @@ let me=null,stats={},room=null,members={},unsubs=[];
 const T={mode:'25/5',cycles:4,subject:'',phase:'idle',cycle:1,running:false,end:0,left:1500,focusBase:0,focusSince:0,lastLog:0};
 const dur=()=>MODES[T.mode][T.phase==='break'?1:0]*60;
 
-/* ---------- auth ---------- */
-const mail=u=>u.toLowerCase().replace(/[^a-z0-9_]/g,'')+'@study.local';
-const authErr=e=>{$('#ae').textContent=({'auth/invalid-credential':'Wrong username or password.','auth/email-already-in-use':'That username is taken.','auth/weak-password':'Use at least 6 characters.','auth/operation-not-allowed':'Turn on Email/Password sign-in in the Firebase console.'})[e.code]||e.message};
-$('#af').onsubmit=async e=>{e.preventDefault();$('#ae').textContent='';try{await signInWithEmailAndPassword(auth,mail($('#u').value),$('#p').value)}catch(x){authErr(x)}};
-$('#su').onclick=async()=>{$('#ae').textContent='';const u=$('#u').value.trim();if(!/^[A-Za-z0-9_]{2,16}$/.test(u))return $('#ae').textContent='Username: 2–16 letters, numbers or _.';
- try{const c=await createUserWithEmailAndPassword(auth,mail(u),$('#p').value);await set(ref(db,`users/${c.user.uid}/name`),u)}catch(x){authErr(x)}};
-$('#out').onclick=async()=>{await leave();await signOut(auth)};
-onAuthStateChanged(auth,u=>{
- if(!u){me=null;$('#auth').classList.remove('hide');$('#app').classList.add('hide');return}
- me={uid:u.uid,name:u.email.split('@')[0]};
+/* ---------- accounts (stored in Realtime Database) ---------- */
+/* accounts/{username_lowercase} = {name, salt, hash, created}   passwords are salted + hashed, never stored as plain text */
+const SKEY='study-session',validU=u=>/^[A-Za-z0-9_]{2,16}$/.test(u),ukey=u=>u.toLowerCase();
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+async function hashPw(pw,salt){
+ if(!(window.crypto&&crypto.subtle))throw new Error('Secure context (https) required.');
+ const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);
+ return hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:new TextEncoder().encode(salt),iterations:100000},k,256));
+}
+let statsOff=null;
+function enter(user){
+ me={uid:user.key,name:user.name};
+ try{localStorage.setItem(SKEY,JSON.stringify(user))}catch(e){}
  $('#auth').classList.add('hide');$('#app').classList.remove('hide');$('#who').textContent=me.name;
- onValue(ref(db,`users/${me.uid}`),s=>{stats=s.val()||{};drawStats();drawSubjects()});
-});
+ if(statsOff)statsOff();
+ statsOff=onValue(ref(db,`users/${me.uid}`),s=>{stats=s.val()||{};drawStats();drawSubjects()});
+}
+function showAuth(){
+ me=null;stats={};if(statsOff){statsOff();statsOff=null}
+ try{localStorage.removeItem(SKEY)}catch(e){}
+ $('#p').value='';$('#auth').classList.remove('hide');$('#app').classList.add('hide');
+}
+$('#af').onsubmit=async e=>{e.preventDefault();$('#ae').textContent='';
+ const u=$('#u').value.trim();
+ if(!validU(u))return $('#ae').textContent='Username: 2–16 letters, numbers or _.';
+ try{
+  const a=(await get(ref(db,`accounts/${ukey(u)}`))).val();
+  if(!a||await hashPw($('#p').value,a.salt)!==a.hash)return $('#ae').textContent='Wrong username or password.';
+  enter({key:ukey(u),name:a.name});
+ }catch(x){$('#ae').textContent=x.message}};
+$('#su').onclick=async()=>{$('#ae').textContent='';
+ const u=$('#u').value.trim(),pw=$('#p').value;
+ if(!validU(u))return $('#ae').textContent='Username: 2–16 letters, numbers or _.';
+ if(pw.length<6)return $('#ae').textContent='Use at least 6 characters.';
+ try{
+  const salt=hex(crypto.getRandomValues(new Uint8Array(16))),hash=await hashPw(pw,salt);
+  const r=await runTransaction(ref(db,`accounts/${ukey(u)}`),cur=>cur===null?{name:u,salt,hash,created:Date.now()}:undefined);
+  if(!r.committed)return $('#ae').textContent='That username is taken.';
+  enter({key:ukey(u),name:u});
+ }catch(x){$('#ae').textContent=x.message}};
+$('#out').onclick=async()=>{await leave();showAuth()};
+(async()=>{ /* restore saved session */
+ let u=null;try{u=JSON.parse(localStorage.getItem(SKEY))}catch(e){}
+ if(!u||!u.key)return;
+ try{const s=await get(ref(db,`accounts/${u.key}`));s.exists()?enter(u):showAuth()}
+ catch(e){enter(u)} /* offline: trust saved session */
+})();
 
 /* ---------- tabs ---------- */
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
@@ -155,7 +236,14 @@ $('#go').onclick=()=>{
  }
  publish();drawTimer()};
 $('#skip').onclick=()=>{if(T.phase==='idle'||T.phase==='done')return;if(!T.running){T.running=true;T.end=Date.now();if(T.phase==='focus')T.focusSince=T.lastLog=Date.now()}else T.end=Date.now();finish();drawTimer()};
-$('#rf').onclick=()=>{flush();location.reload()};
+$('#rf').onclick=async()=>{
+ flush();
+ try{
+  if('serviceWorker' in navigator){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}
+  if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}
+ }catch(e){}
+ location.replace(location.pathname+'?r='+Date.now());
+};
 $('#fin').onclick=()=>{
  if(T.phase!=='focus'&&T.phase!=='break')return;
  flush();
@@ -169,7 +257,12 @@ function drawTimer(){
  const idle=T.phase==='idle'||T.phase==='done';
  const left=T.running?(T.end-Date.now())/1000:(idle?MODES[T.mode][0]*60:T.left);
  $('#clk').textContent=clock(left);
- $('#ph').innerHTML=T.phase==='focus'?'<span class="f">Focus</span>':T.phase==='break'?'<span class="b">Break</span>':T.phase==='done'?(T.early?`Finished early. You studied ${fmt(T.focusBase/1000)}.`:'Finished. Nice work!'):'Ready';
+ const total=idle?MODES[T.mode][0]*60:dur();
+ $('#arc').style.strokeDashoffset=idle?0:628.32*(1-Math.max(0,Math.min(1,left/total)));
+ $('#ring').classList.toggle('brk',T.phase==='break');
+ $('#sub').textContent=idle?`${T.mode.replace('/',' / ')} · ${T.cycles} cycles`:`${T.subject||'No subject'} · cycle ${T.cycle} of ${T.cycles}`;
+ $('#ph').innerHTML=T.phase==='focus'?'<span class="f">Focus</span>':T.phase==='break'?'<span class="b">Break</span>':T.phase==='done'?(T.early?'Finished early':'All done'):'Ready';
+ if(T.phase==='done')$('#sub').textContent=`You studied ${fmt(T.focusBase/1000)}`;
  $('#fin').classList.toggle('hide',idle);
  $('#go').textContent=T.running?'Pause':idle?'Start':'Resume';
  document.querySelectorAll('#modes button').forEach(b=>{b.classList.toggle('on',b.dataset.m===T.mode);b.disabled=!idle});
@@ -203,8 +296,8 @@ function drawMembers(){
   const rem=m.running?(m.end-now)/1000:(idle?MODES[m.mode][0]*60:m.left);
   const work=(m.focusBase+(m.focusSince?now-m.focusSince:0))/1000;
   return {id,m,rem,work,idle}});
- $('#mem').innerHTML=list.map(({id,m,rem,work,idle})=>`<div class="card mem"><b>${esc(m.name)}${id===me.uid?' (you)':''}</b>
- <span class="mute">${esc(m.subject||'No subject')} · ${m.mode}</span>
+ $('#mem').innerHTML=list.map(({id,m,rem,work,idle})=>`<div class="card mem ${m.phase}"><div class="row" style="flex-wrap:nowrap"><div class="av">${esc(m.name[0]||'?').toUpperCase()}</div><div><b>${esc(m.name)}${id===me.uid?' (you)':''}</b>
+ <span class="mute">${esc(m.subject||'No subject')} · ${m.mode}</span></div></div>
  <div class="t ${m.phase==='focus'?'f':m.phase==='break'?'b':''}">${clock(rem)}</div>
  <div>${m.phase==='focus'?'Focusing':m.phase==='break'?'On break':m.phase==='done'?'Finished':'Idle'}${!m.running&&!idle?' (paused)':''}</div>
  <div class="mute">Working ${fmt(work)} · cycle ${m.cycle} of ${m.cycles}</div>

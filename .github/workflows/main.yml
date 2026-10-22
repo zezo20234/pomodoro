@@ -1,0 +1,22 @@
+name: Build iOS IPA
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest
+      - name: Build App
+        run: |
+          xcodebuild -workspace Studytime.xcworkspace -scheme Studytime -sdk iphoneos -configuration Release CODE_SIGNING_ALLOWED=NO
+          mkdir -p Payload
+          mv build/Release-iphoneos/Studytime.app Payload/
+          zip -r Studytime.ipa Payload
+      - name: Upload IPA
+        uses: actions/upload-artifact@v3
+        with:
+          name: StudyTime-IPA
+          path: Studytime.ipa

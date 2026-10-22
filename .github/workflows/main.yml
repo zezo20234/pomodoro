@@ -13,17 +13,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up CocoaPods
-        run: |
-          pod install || pod install --repo-update
+      - name: List Directory Structure
+        run: ls -la
 
       - name: Build Xcode Archive
         run: |
+          PROJ=$(find . -maxdepth 2 -name "*.xcodeproj" | head -n 1)
+          SCHEME=$(xcodebuild -list -project "$PROJ" | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag' | xargs | awk '{print $1}')
+          
+          echo "Found project: $PROJ"
+          echo "Found scheme: $SCHEME"
+
           xcodebuild archive \
-            -workspace *.xcworkspace \
-            -scheme "Studytime" \
+            -project "$PROJ" \
+            -scheme "$SCHEME" \
             -sdk iphoneos \
-            -archivePath build/Studytime.xcarchive \
+            -archivePath build/App.xcarchive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY=""
@@ -31,11 +36,11 @@ jobs:
       - name: Create Unsigned IPA Package
         run: |
           mkdir -p Payload
-          cp -r build/Studytime.xcarchive/Products/Applications/*.app Payload/
-          zip -r Studytime.ipa Payload
+          cp -r build/App.xcarchive/Products/Applications/*.app Payload/
+          zip -r StudyTime.ipa Payload
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: StudyTime-IPA
-          path: Studytime.ipa
+          path: StudyTime.ipa

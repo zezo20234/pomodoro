@@ -198,7 +198,7 @@ const MODES={'15/3':[15,3],'25/5':[25,5],'50/10':[50,10]};
 
 let me=null,stats={},room=null,members={},unsubs=[];
 const ROOMS=[{id:'lounge',name:'Study Lounge',d:'First one in picks the Pomodoro for everyone.',m:1},{id:'library',name:'Quiet Library',d:'First one in picks the Pomodoro for everyone.',m:1},{id:'open',name:'Open Study',d:'Just study together. Everyone runs their own timer.',m:0}];
-let lockMode=false,info={},roomOffs=[],pickFor=null,svOff=0,rt=null,adv=0,allUsers={},adSel=null,adOff=null;
+let lockMode=false,info={},roomOffs=[],pickFor=null,svOff=0,rt=null,adv=0,sp=null,allUsers={},adSel=null,adOff=null;
 const T={mode:'25/5',cycles:4,subject:'',phase:'idle',cycle:1,running:false,end:0,left:1500,focusBase:0,focusSince:0,lastLog:0};
 const dur=()=>MODES[T.mode][T.phase==='break'?1:0]*60;
 
@@ -329,7 +329,7 @@ function drawTimer(){
  $('#dots').innerHTML=Array.from({length:T.cycles},(_,i)=>`<i class="${i+1<T.cycle||(T.phase==='done'&&!T.early)?'d':''} ${i+1===T.cycle&&!idle?'c':''}"></i>`).join('');
  const MN={'15/3':'Sprint','25/5':'Classic','50/10':'Deep'},RR=ROOMS.find(r=>r.id===room);
  if(RR){$('#rhead').textContent=RR.name;$('#rmode').textContent=RR.m?`${MN[T.mode]} · ${T.mode.replace('/',' / ')} · one shared timer for everyone`:'Open study · pick your own timer'}
- $('#rclk').textContent=$('#clk').textContent;$('#rph').innerHTML=$('#ph').innerHTML;$('#rsub').textContent=$('#sub').textContent;$('#rgo').textContent=$('#go').textContent;$('#rdots').innerHTML=$('#dots').innerHTML;$('#rarc').style.strokeDashoffset=$('#arc').style.strokeDashoffset;$('#rring').classList.toggle('brk',T.phase==='break');$('#rfin').classList.toggle('hide',idle||lockMode);$('#rskip').classList.toggle('hide',lockMode);$('#rset').classList.toggle('hide',!(idle||lockMode));$('#rcyc').classList.toggle('hide',!idle);$('#rmodes').classList.toggle('hide',lockMode);
+ $('#rclk').textContent=$('#clk').textContent;$('#rph').innerHTML=$('#ph').innerHTML;$('#rsub').textContent=$('#sub').textContent;$('#rgo').textContent=$('#go').textContent;$('#rdots').innerHTML=$('#dots').innerHTML;$('#rarc').style.strokeDashoffset=$('#arc').style.strokeDashoffset;$('#rring').classList.toggle('brk',T.phase==='break');$('#rfin').classList.toggle('hide',idle||lockMode);$('#rskip').classList.toggle('hide',lockMode);$('#rset').classList.toggle('hide',!(idle||lockMode));$('#rcyc').classList.toggle('hide',!idle&&!lockMode);$('#rmodes').classList.toggle('hide',lockMode);
  document.querySelectorAll('#rmodes button').forEach(b=>{b.classList.toggle('on',b.dataset.m===T.mode);b.disabled=!idle||lockMode});
  document.title=T.running?`${clock(left)} · Study Together`:'Study Together';
 }
@@ -343,20 +343,27 @@ const tref=()=>ref(db,`rooms/${room}/timer`),sNow=()=>Date.now()+svOff;
 function stopClock(){if(T.phase==='focus'&&T.running&&T.focusSince){const t=Math.min(Date.now(),T.end);flush(t);T.focusBase+=Math.max(0,t-T.focusSince)}T.focusSince=0;T.lastLog=0}
 function applyShared(g){
  const op=T.phase;stopClock();
- if(!g){T.phase='idle';T.running=false;T.cycle=1;T.left=MODES[T.mode][0]*60;publish();drawTimer();return}
- const wasIdle=op==='idle'||op==='done';
- T.mode=g.mode;T.cycles=g.cycles;T.cycle=g.cycle;T.phase=g.phase;T.running=!!g.running;T.end=g.running?g.end-svOff:0;T.left=g.left||0;
- if(g.phase==='focus'&&wasIdle){T.focusBase=0;T.early=false}
- if(T.phase==='focus'&&T.running){T.focusSince=T.lastLog=Date.now()}
- if(g.phase==='done'&&op!=='done')logSession();
- if(op!==g.phase&&(op==='focus'||op==='break')&&g.phase!=='idle')beep();
- publish();drawTimer();
+ if(!g){T.phase='idle';T.running=false;T.cycle=1;T.pdone=false;T.left=MODES[T.mode][0]*60;sp='idle';publish();drawTimer();return}
+ const fresh=g.phase==='focus'&&(sp===null||sp==='idle'||sp==='done');
+ if(fresh||T.myBase==null){T.myBase=g.phase==='break'?g.cycle+1:g.cycle;if(fresh){T.focusBase=0;T.early=false}T.pdone=false}
+ const mine=g.cycle-T.myBase+1;
+ const fin=g.phase!=='idle'&&(g.phase==='done'||mine>T.cycles||(mine===T.cycles&&g.phase==='break'));
+ T.mode=g.mode;
+ if(fin){
+  const was=T.pdone;T.pdone=true;T.phase='done';T.running=false;T.end=0;T.left=0;T.cycle=Math.max(1,Math.min(mine,T.cycles));
+  if(!was){logSession();if(op==='focus'||op==='break')beep()}
+ }else{
+  T.pdone=false;T.cycle=Math.max(1,mine);T.phase=g.phase;T.running=!!g.running;T.end=g.running?g.end-svOff:0;T.left=g.left||0;
+  if(T.phase==='focus'&&T.running){T.focusSince=T.lastLog=Date.now()}
+  if(op!==g.phase&&(op==='focus'||op==='break')&&g.phase!=='idle')beep();
+ }
+ sp=g.phase;publish();drawTimer();
 }
 function sGo(){
  keepAlive(true);const g=rt||{},q=(g.seq||0)+1;
  if(g.running)update(tref(),{running:false,left:Math.max(0,(g.end-sNow())/1000),seq:q});
  else if(g.phase==='focus'||g.phase==='break')update(tref(),{running:true,end:sNow()+(g.left||0)*1000,seq:q});
- else set(tref(),{mode:T.mode,phase:'focus',cycle:1,cycles:Math.max(1,Math.min(12,+$('#rcyc').value||+$('#cyc').value||4)),running:true,end:sNow()+MODES[T.mode][0]*60000,left:0,seq:q});
+ else set(tref(),{mode:T.mode,phase:'focus',cycle:1,cycles:99,running:true,end:sNow()+MODES[T.mode][0]*60000,left:0,seq:q});
 }
 function sReset(){set(tref(),{mode:T.mode,phase:'idle',cycle:1,cycles:(rt&&rt.cycles)||4,running:false,end:0,left:0,seq:((rt&&rt.seq)||0)+1})}
 function roomAdvance(){
@@ -364,7 +371,8 @@ function roomAdvance(){
  runTransaction(tref(),cur=>{
   if(!cur||!cur.running||sNow()<cur.end-300)return;
   const n={...cur,seq:(cur.seq||0)+1},[f,b]=MODES[cur.mode];
-  if(cur.phase==='focus'){if(cur.cycle>=cur.cycles){n.phase='done';n.running=false;n.left=0;n.end=0}else{n.phase='break';n.end=cur.end+b*60000}}
+  if(sNow()-cur.end>15000)return {...cur,phase:'idle',cycle:1,running:false,end:0,left:0,seq:n.seq};
+  if(cur.phase==='focus'){n.phase='break';n.end=cur.end+b*60000}
   else{n.phase='focus';n.cycle=cur.cycle+1;n.end=cur.end+f*60000}
   return n}).catch(()=>{});
 }
@@ -383,7 +391,7 @@ function drawRooms(){
 $('#rooms').onclick=e=>{if(e.target.dataset.o){$('#room').classList.remove('hide');return}const j=e.target.dataset.j;if(!j)return;room===j?leave():joinRoom(j)};
 async function leave(){
  unsubs.forEach(f=>f());unsubs=[];
- if(lockMode){const mid=T.phase==='focus'||T.phase==='break';stopClock();if(mid){T.early=true;logSession()}T.phase='idle';T.running=false;T.focusBase=0;T.left=MODES[T.mode][0]*60;rt=null}
+ if(lockMode){const mid=T.phase==='focus'||T.phase==='break';stopClock();if(mid){T.early=true;logSession()}T.phase='idle';T.running=false;T.focusBase=0;T.left=MODES[T.mode][0]*60;rt=null;T.myBase=null;T.pdone=false;sp=null}
  if(room&&me){try{await remove(ref(db,`rooms/${room}/members/${me.uid}`))}catch(e){}}
  $('#room').classList.add('hide');room=null;lockMode=false;members={};$('#chat').innerHTML='';$('#rn').textContent='Pick a room to study together.';drawRooms();drawTimer();drawMembers();
 }
@@ -408,7 +416,7 @@ async function enterRoom(c){
  if(R.m)unsubs.push(onValue(ref(db,`rooms/${c}/timer`),x=>{rt=x.val();applyShared(rt)}));
  unsubs.push(onValue(ref(db,`rooms/${c}/members`),x=>{members=x.val()||{};drawMembers()}));
  unsubs.push(onChildAdded(query(ref(db,`rooms/${c}/chat`),limitToLast(50)),x=>{const m=x.val(),p=document.createElement('p');p.innerHTML=`<b>${esc(m.name)}</b> ${esc(m.text)}`;const box=$('#chat');box.appendChild(p);box.scrollTop=box.scrollHeight}));
- $('#rn').textContent=R.name;$('#rsubj').value=$('#subj').value;T.subject=$('#rsubj').value.trim();$('#rcyc').value=$('#cyc').value;$('#room').classList.remove('hide');drawRooms();drawTimer();
+ $('#rn').textContent=R.name;$('#rsubj').value=$('#subj').value;T.subject=$('#rsubj').value.trim();$('#rcyc').value=$('#cyc').value;T.cycles=Math.max(1,Math.min(12,+$('#rcyc').value||4));T.myBase=null;sp=null;T.pdone=false;$('#room').classList.remove('hide');drawRooms();drawTimer();
 }
 $('#cf').onsubmit=e=>{e.preventDefault();const t=$('#ct').value.trim();if(!t||!room)return;push(ref(db,`rooms/${room}/chat`),{uid:me.uid,name:me.name,text:t,t:Date.now()});$('#ct').value=''};
 let lbMode='today';
@@ -463,7 +471,7 @@ function drawStats(){
 $('#rgo').onclick=()=>$('#go').click();$('#rskip').onclick=()=>$('#skip').click();$('#rfin').onclick=()=>$('#fin').click();$('#rrst').onclick=()=>$('#rst').click();
 $('#rmodes').onclick=e=>{const b=e.target.closest('button');if(b&&b.dataset.m&&!b.disabled)document.querySelector(`#modes button[data-m="${b.dataset.m}"]`).click()};
 $('#rsubj').oninput=()=>{$('#subj').value=$('#rsubj').value;T.subject=$('#rsubj').value.trim()};$('#rsubj').onchange=publish;
-$('#rcyc').onchange=()=>{$('#cyc').value=$('#rcyc').value;$('#cyc').dispatchEvent(new Event('change'))};
+$('#rcyc').onchange=()=>{const v=Math.max(1,Math.min(12,+$('#rcyc').value||4));$('#rcyc').value=v;$('#cyc').value=v;if(lockMode){T.cycles=v;if(rt)applyShared(rt);publish()}else $('#cyc').dispatchEvent(new Event('change'))};
 $('#rmin').onclick=()=>$('#room').classList.add('hide');$('#rleave').onclick=leave;
 /* ---------- admin (zezo) ---------- */
 function adminInit(){if(!me||me.uid!=='zezo')return;$('#adtab').classList.remove('hide');adOff=onValue(ref(db,'users'),x=>{allUsers=x.val()||{};drawAdmin()})}

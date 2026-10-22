@@ -13,19 +13,27 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: List Directory Structure
-        run: ls -la
+      - name: Install Dependencies & Pods
+        run: |
+          if [ -f "Podfile" ]; then
+            pod install
+          fi
 
       - name: Build Xcode Archive
         run: |
-          PROJ=$(find . -maxdepth 2 -name "*.xcodeproj" | head -n 1)
-          SCHEME=$(xcodebuild -list -project "$PROJ" | awk '/Schemes:/{flag=1;next}/^$/{flag=0}flag' | xargs | awk '{print $1}')
+          WORKSPACE=$(find . -maxdepth 2 -name "*.xcworkspace" | head -n 1)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
           
-          echo "Found project: $PROJ"
-          echo "Found scheme: $SCHEME"
+          if [ -z "$WORKSPACE" ]; then
+            WORKSPACE=$(find . -maxdepth 2 -name "*.xcodeproj" | head -n 1)
+            SCHEME=$(basename "$WORKSPACE" .xcodeproj)
+          fi
+
+          echo "Using Workspace/Project: $WORKSPACE"
+          echo "Using Scheme: $SCHEME"
 
           xcodebuild archive \
-            -project "$PROJ" \
+            -workspace "$WORKSPACE" \
             -scheme "$SCHEME" \
             -sdk iphoneos \
             -archivePath build/App.xcarchive \

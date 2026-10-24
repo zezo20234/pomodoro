@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -48,6 +48,7 @@ input,select{background:var(--card);border:1px solid var(--line);border-radius:v
 .sb{margin:6px 0}.sb i{display:block;height:6px;background:var(--focus);border-radius:3px;margin-top:2px}
 .err{color:#c0392b;font-size:13px;min-height:18px}
 .hide{display:none!important}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -162,8 +163,9 @@ nav button.on{background:#050505;color:var(--focus)}
 <section id="t"><p class="mute" style="margin:0 0 12px">Hello, <b id="who" style="color:#fff"></b></p>
 <div class="card"><div class="chip" id="tdy">Today</div>
 <div class="ring" id="ring"><svg viewBox="0 0 220 220"><circle class="tr" cx="110" cy="110" r="100"/><circle class="ar" id="arc" cx="110" cy="110" r="100"/></svg>
-<div class="mid"><div id="ph" class="mute">Ready</div><div id="clk">25:00</div><div id="sub" class="mute"></div></div></div><div class="dots" id="dots"></div>
-<div class="modes" id="modes"><button data-m="15/3"><b>Sprint</b>15 / 3</button><button data-m="25/5" class="on"><b>Classic</b>25 / 5</button><button data-m="50/10"><b>Deep</b>50 / 10</button></div>
+<div class="mid"><div id="ph" class="mute">Ready</div><div id="clk">25:00</div><div id="sub" class="mute"></div></div></div><div id="nst" class="mute" style="text-align:center;font-size:12px;margin-top:6px"></div><div class="dots" id="dots"></div>
+<div class="modes" id="modes"><button data-m="15/3"><b>Sprint</b>15 / 3</button><button data-m="25/5" class="on"><b>Classic</b>25 / 5</button><button data-m="50/10"><b>Deep</b>50 / 10</button><button data-m="custom" id="cbtn"><b>Custom</b>your own</button></div>
+<div class="row hide" id="crow" style="margin:10px 0 0;justify-content:center"><label class="mute">Focus <input id="cf1" type="number" min="1" max="180" value="40" style="width:80px" aria-label="Focus minutes"> min</label><label class="mute">Break <input id="cb1" type="number" min="1" max="60" value="8" style="width:80px" aria-label="Break minutes"> min</label></div>
 <div class="row" style="margin:14px 0"><input id="subj" list="sl" placeholder="No label" maxlength="24" style="flex:1;min-width:130px"><datalist id="sl"></datalist><input id="cyc" type="number" min="1" max="12" value="4" style="width:90px" aria-label="Cycles"></div>
 <div class="row" style="justify-content:center"><button class="btn" id="go">Start</button></div>
 <div class="row" style="justify-content:center;margin-top:10px"><button class="btn alt" id="skip">Skip</button><button class="btn alt hide" id="fin">Finish</button><button class="btn alt" id="rst">Reset</button></div></div>
@@ -194,7 +196,8 @@ const clock=s=>{s=Math.max(0,Math.ceil(s));return pad(Math.floor(s/60))+':'+pad(
 const dk=(d=new Date())=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const skey=s=>((s||'General').replace(/[.#$\[\]\/]/g,'-').trim().slice(0,24))||'General';
-const MODES={'15/3':[15,3],'25/5':[25,5],'50/10':[50,10]};
+const PRESET={'15/3':[15,3],'25/5':[25,5],'50/10':[50,10]};
+const MODES=new Proxy(PRESET,{get(t,k){if(k in t)return t[k];if(typeof k==='string'){const m=/^(\d{1,3})\/(\d{1,2})$/.exec(k);if(m&&+m[1]>0)return[+m[1],+m[2]]}return t[k]||PRESET['25/5']}});
 
 let me=null,stats={},room=null,members={},unsubs=[];
 const ROOMS=[{id:'lounge',name:'Study Lounge',d:'First one in picks the Pomodoro for everyone.',m:1},{id:'library',name:'Quiet Library',d:'First one in picks the Pomodoro for everyone.',m:1},{id:'open',name:'Open Study',d:'Just study together. Everyone runs their own timer.',m:0}];
@@ -262,9 +265,9 @@ function keepAlive(on){
   try{navigator.mediaSession.metadata=new MediaMetadata({title:'Study Together',artist:'Focus session running'})}catch(e){}}
  else if(AUD.dataset.m!=='a'){AUD.pause();AUD.dataset.m=''}
 }
-function ringAlarm(id=alarmId){AUD.dataset.m='a';AUD.loop=false;AUD.src=alarmURL(id);AUD.play().catch(()=>{});try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}
+function ringAlarm(id=alarmId){AUD.dataset.m='a';AUD.loop=false;AUD.src=alarmURL(id);AUD.play().catch(()=>{});buzz()}
 AUD.onended=()=>{if(AUD.dataset.m==='a'){AUD.dataset.m='';T.running?keepAlive(true):keepAlive(false)}};
-function syncAudio(){const m=AUD.dataset.m,w=T.running||lockMode;if(w&&m!=='s'&&m!=='a')keepAlive(true);else if(!w&&m==='s')keepAlive(false)}
+function syncAudio(){const m=AUD.dataset.m,w=T.running||lockMode||T.phase==='focus'||T.phase==='break';if(w&&m!=='s'&&m!=='a')keepAlive(true);else if(!w&&m==='s')keepAlive(false)}
 
 /* ---------- timer ---------- */
 function flush(t=Date.now()){
@@ -275,9 +278,64 @@ function flush(t=Date.now()){
 }
 function publish(){
  if(!room||!me)return;
- set(ref(db,`rooms/${room}/members/${me.uid}`),{name:me.name,mode:T.mode,phase:T.phase,cycle:T.cycle,cycles:T.cycles,subject:T.subject||'',running:T.running,end:T.running?T.end:0,left:T.running?0:Math.round(T.left),focusBase:T.focusBase,focusSince:T.focusSince,today:(stats.days&&stats.days[dk()]&&stats.days[dk()].total)||0,all:stats.total||0,streak:streak(),t:Date.now()});
+ set(ref(db,`rooms/${room}/members/${me.uid}`),{name:me.name,mode:(T.mode in PRESET)?T.mode:'25/5',phase:T.spect?'idle':T.phase,cycle:T.cycle,cycles:T.cycles,subject:T.subject||'',running:!T.spect&&T.running,end:!T.spect&&T.running?T.end:0,left:T.spect?0:T.running?0:Math.round(T.left),focusBase:T.focusBase,focusSince:T.focusSince,today:(stats.days&&stats.days[dk()]&&stats.days[dk()].total)||0,all:stats.total||0,streak:streak(),t:Date.now()});
 }
+let kitOn=false;
 function beep(){ringAlarm()}
+
+/* ---------- native iOS: haptics, alarm notifications, Live Activity ---------- */
+const CAP=window.Capacitor,isNative=!!(CAP&&CAP.isNativePlatform&&CAP.isNativePlatform());
+const NP=n=>{try{return(CAP.Plugins&&CAP.Plugins[n])||CAP.registerPlugin(n)}catch(e){}};
+const HP=isNative?NP('Haptics'):null,LN=isNative?NP('LocalNotifications'):null,LA=isNative?NP('LiveActivity'):null;
+function hap(style){try{HP&&HP.impact({style:style||'LIGHT'})}catch(e){}}
+function buzz(){
+ if(HP){let n=0;const go=()=>{try{HP.vibrate({duration:500})}catch(e){}if(++n<5)setTimeout(go,700)};go();try{HP.notification({type:'SUCCESS'})}catch(e){}}
+ else try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}
+}
+if(isNative){
+ document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('button'))hap('LIGHT')},true);
+ ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
+ setTimeout(async()=>{try{const p=await LN.checkPermissions();if(p.display!=='granted')await LN.requestPermissions()}catch(e){}},1200);
+}
+function phaseChain(){
+ const out=[];if(!T.running)return out;
+ let ph=T.phase,cyc=T.cycle,at=T.end;const m=MODES[T.mode];
+ for(let i=0;i<24;i++){
+  if(ph==='focus'){
+   if(cyc>=T.cycles){out.push({at,title:'Session complete',body:T.cycles+' rounds done. Great work!'});break}
+   out.push({at,title:'Break time',body:'Round '+cyc+'/'+T.cycles+' done. Rest '+m[1]+' min.'});ph='break';at+=m[1]*60000;
+  }else if(ph==='break'){
+   out.push({at,title:'Back to focus',body:'Round '+(cyc+1)+'/'+T.cycles+' starts now.'});ph='focus';cyc++;at+=m[0]*60000;
+  }else break;
+ }
+ return out;
+}
+if(isNative&&LA){try{LA.addListener('liveAction',e=>{const a=e&&e.action;if(T.spect)return;if(a==='toggle')$('#go').click();else if(a==='skip')$('#skip').click()})}catch(e){}}
+let nsig='',sched=[];
+async function nativeSync(){
+ if(!isNative)return;
+ if(sched.some(t=>Math.abs(t-Date.now())<6000)){nsig='';return}
+ const sig=[T.spect,T.running,T.phase,T.end,T.cycle,T.cycles,T.mode,T.running?0:Math.round(T.left)].join('|');
+ if(sig===nsig)return;nsig=sig;
+ try{
+  const now=Date.now();
+  const items=T.running&&!T.spect?phaseChain().filter(c=>c.at>now+1500):[];
+  sched=items.map(c=>c.at);
+  let kit=false;
+  if(LA){try{const r=await LA.setAlarms({alarms:items.map(c=>({endMs:c.at,title:c.title}))});kit=!!(r&&r.scheduled)}catch(e){}}
+  kitOn=kit&&T.running&&!T.spect;
+  const nst=document.getElementById('nst');if(nst)nst.textContent=(T.running&&!T.spect)?(kit?'Alarm: system alarm (rings on silent)':'Alarm: notification + in-app sound'):'';
+  if(LN){
+   const p=await LN.getPending();
+   if(p.notifications&&p.notifications.length)await LN.cancel({notifications:p.notifications.map(n=>({id:n.id}))});
+   if(!kit&&items.length)await LN.schedule({notifications:items.map((c,i)=>({id:i+1,title:c.title,body:c.body,schedule:{at:new Date(c.at),allowWhileIdle:true},sound:'alarm.wav'}))});
+  }
+  if(LA){
+   if(T.spect||T.phase==='idle'||T.phase==='done')await LA.end();
+   else await LA.start({phase:T.phase==='break'?'Break':'Focus',endMs:T.running?T.end:Date.now()+T.left*1000,paused:!T.running,remaining:Math.round(T.left),cycleText:'Round '+T.cycle+' of '+T.cycles,subject:T.subject||''});
+  }
+ }catch(e){}
+}
 function begin(phase){T.phase=phase;T.left=dur();T.end=Date.now()+T.left*1000;T.running=true;
  if(phase==='focus'){T.focusSince=T.lastLog=Date.now()}}
 function finish(){
@@ -288,7 +346,7 @@ function finish(){
  beep();publish();
 }
 function logSession(){if(!me||T.focusBase<60000)return;push(ref(db,`users/${me.uid}/sessions`),{t:Date.now(),s:Math.round(T.focusBase/1000),sub:T.subject||'',mode:T.mode,early:!!T.early,room:room||''})}
-$('#go').onclick=()=>{if(lockMode)return sGo();if(!T.running)keepAlive(true);
+$('#go').onclick=()=>{if(lockMode)return T.spect?joinFocus():sGo();if(!T.running)keepAlive(true);
  if(T.running){flush();if(T.phase==='focus'){T.focusBase+=Date.now()-T.focusSince;T.focusSince=0;T.lastLog=0}T.left=(T.end-Date.now())/1000;T.running=false}
  else{
   if(T.phase==='idle'||T.phase==='done'){T.early=false;T.cycle=1;T.focusBase=0;T.cycles=Math.max(1,Math.min(12,+$('#cyc').value||4));T.subject=$('#subj').value.trim();begin('focus')}
@@ -304,14 +362,18 @@ $('#rf').onclick=async()=>{
  }catch(e){}
  location.replace(location.pathname+'?r='+Date.now());
 };
-$('#fin').onclick=()=>{if(lockMode)return;
- if(T.phase!=='focus'&&T.phase!=='break')return;
+$('#fin').onclick=()=>{if(T.phase!=='focus'&&T.phase!=='break')return;
+ if(lockMode){if(T.spect)return;stopClock();T.early=true;logSession();T.focusBase=0;T.pdone=false;T.spect=true;applyShared(rt);return}
  flush();
  if(T.phase==='focus'&&T.focusSince){T.focusBase+=Date.now()-T.focusSince}
  T.focusSince=0;T.lastLog=0;T.running=false;T.phase='done';T.early=true;T.left=0;logSession();
  publish();drawTimer()};
-$('#rst').onclick=()=>{if(lockMode)return sReset();flush();T.running=false;T.phase='idle';T.cycle=1;T.focusBase=0;T.focusSince=0;T.lastLog=0;T.left=MODES[T.mode][0]*60;publish();drawTimer()};
-$('#modes').onclick=e=>{const bt=e.target.closest('button'),m=bt&&bt.dataset.m;if(!m||lockMode||T.phase!=='idle'&&T.phase!=='done')return;T.mode=m;T.left=MODES[m][0]*60;drawTimer()};
+$('#rst').onclick=()=>{if(lockMode)return T.spect?0:sReset();flush();T.running=false;T.phase='idle';T.cycle=1;T.focusBase=0;T.focusSince=0;T.lastLog=0;T.left=MODES[T.mode][0]*60;publish();drawTimer()};
+function applyCustom(){const f=Math.max(1,Math.min(180,Math.round(+$('#cf1').value)||40)),b=Math.max(1,Math.min(60,Math.round(+$('#cb1').value)||5));
+ $('#cf1').value=f;$('#cb1').value=b;T.mode=f+'/'+b;T.left=f*60;try{localStorage.setItem('st_custom',f+'/'+b)}catch(e){}drawTimer()}
+try{const c=localStorage.getItem('st_custom');if(c){const m=/^(\d+)\/(\d+)$/.exec(c);if(m){$('#cf1').value=m[1];$('#cb1').value=m[2]}}}catch(e){}
+$('#cf1').onchange=$('#cb1').onchange=()=>{if(!lockMode&&(T.phase==='idle'||T.phase==='done'))applyCustom()};
+$('#modes').onclick=e=>{const bt=e.target.closest('button'),m=bt&&bt.dataset.m;if(!m||lockMode||T.phase!=='idle'&&T.phase!=='done')return;if(m==='custom')return applyCustom();T.mode=m;T.left=MODES[m][0]*60;drawTimer()};
 $('#cyc').onchange=()=>{if(T.phase==='idle'||T.phase==='done'){T.cycles=Math.max(1,Math.min(12,+$('#cyc').value||4));drawTimer()}};
 function drawTimer(){
  const idle=T.phase==='idle'||T.phase==='done';
@@ -323,19 +385,21 @@ function drawTimer(){
  $('#sub').textContent=idle?`${T.mode.replace('/',' / ')} · ${T.cycles} cycles`:`${T.subject||'No subject'} · cycle ${T.cycle} of ${T.cycles}`;
  $('#ph').innerHTML=T.phase==='focus'?'<span class="f">Focus</span>':T.phase==='break'?'<span class="b">Break</span>':T.phase==='done'?(T.early?'Finished early':'All done'):'Ready';
  if(T.phase==='done')$('#sub').textContent=`You studied ${fmt(T.focusBase/1000)}`;
- $('#fin').classList.toggle('hide',idle);
- $('#go').textContent=T.running?'Pause':idle?'Start':'Resume';
- document.querySelectorAll('#modes button').forEach(b=>{b.classList.toggle('on',b.dataset.m===T.mode);b.disabled=!idle||lockMode});
+ if(T.spect&&lockMode&&!idle)$('#sub').textContent='Watching · your time is not counted until you tap Join focus';
+ $('#fin').classList.toggle('hide',idle||T.phase==='done'||(lockMode&&T.spect));
+ $('#go').textContent=T.spect&&lockMode?(idle?'Start focus':'Join focus'):T.running?'Pause':idle?'Start':'Resume';
+ document.querySelectorAll('#modes button').forEach(b=>{b.classList.toggle('on',b.dataset.m==='custom'?!(T.mode in PRESET):b.dataset.m===T.mode);b.disabled=!idle||lockMode});
+ $('#crow').classList.toggle('hide',T.mode in PRESET);$('#cf1').disabled=$('#cb1').disabled=!idle||lockMode;
  $('#dots').innerHTML=Array.from({length:T.cycles},(_,i)=>`<i class="${i+1<T.cycle||(T.phase==='done'&&!T.early)?'d':''} ${i+1===T.cycle&&!idle?'c':''}"></i>`).join('');
  const MN={'15/3':'Sprint','25/5':'Classic','50/10':'Deep'},RR=ROOMS.find(r=>r.id===room);
- if(RR){$('#rhead').textContent=RR.name;$('#rmode').textContent=RR.m?`${MN[T.mode]} · ${T.mode.replace('/',' / ')} · one shared timer for everyone`:'Open study · pick your own timer'}
- $('#rclk').textContent=$('#clk').textContent;$('#rph').innerHTML=$('#ph').innerHTML;$('#rsub').textContent=$('#sub').textContent;$('#rgo').textContent=$('#go').textContent;$('#rdots').innerHTML=$('#dots').innerHTML;$('#rarc').style.strokeDashoffset=$('#arc').style.strokeDashoffset;$('#rring').classList.toggle('brk',T.phase==='break');$('#rfin').classList.toggle('hide',idle||lockMode);$('#rskip').classList.toggle('hide',lockMode);$('#rset').classList.toggle('hide',!(idle||lockMode));$('#rcyc').classList.toggle('hide',!idle&&!lockMode);$('#rmodes').classList.toggle('hide',lockMode);
+ if(RR){$('#rhead').textContent=RR.name;$('#rmode').textContent=RR.m?`${MN[T.mode]||'Custom'} · ${T.mode.replace('/',' / ')} · one shared timer for everyone`:'Open study · pick your own timer'}
+ $('#rclk').textContent=$('#clk').textContent;$('#rph').innerHTML=$('#ph').innerHTML;$('#rsub').textContent=$('#sub').textContent;$('#rgo').textContent=$('#go').textContent;$('#rdots').innerHTML=$('#dots').innerHTML;$('#rarc').style.strokeDashoffset=$('#arc').style.strokeDashoffset;$('#rring').classList.toggle('brk',T.phase==='break');$('#rfin').classList.toggle('hide',idle||(lockMode&&T.spect));$('#rskip').classList.toggle('hide',lockMode);$('#rset').classList.toggle('hide',!(idle||lockMode));$('#rcyc').classList.toggle('hide',!idle&&!lockMode);$('#rmodes').classList.toggle('hide',lockMode);
  document.querySelectorAll('#rmodes button').forEach(b=>{b.classList.toggle('on',b.dataset.m===T.mode);b.disabled=!idle||lockMode});
  document.title=T.running?`${clock(left)} · Study Together`:'Study Together';
 }
 setInterval(()=>{
- if(T.running){if(Date.now()>=T.end){lockMode?roomAdvance():finish()}else if(T.phase==='focus'&&Date.now()-T.lastLog>=30000){flush();publish()}}
- drawTimer();drawMembers();
+ if(T.running){if(Date.now()>=T.end){lockMode?roomAdvance():finish()}else if(T.phase==='focus'&&!T.spect&&Date.now()-T.lastLog>=30000){flush();publish()}}
+ drawTimer();drawMembers();nativeSync();
 },500);
 
 /* ---------- shared room timer ---------- */
@@ -343,21 +407,26 @@ const tref=()=>ref(db,`rooms/${room}/timer`),sNow=()=>Date.now()+svOff;
 function stopClock(){if(T.phase==='focus'&&T.running&&T.focusSince){const t=Math.min(Date.now(),T.end);flush(t);T.focusBase+=Math.max(0,t-T.focusSince)}T.focusSince=0;T.lastLog=0}
 function applyShared(g){
  const op=T.phase;stopClock();
- if(!g){T.phase='idle';T.running=false;T.cycle=1;T.pdone=false;T.left=MODES[T.mode][0]*60;sp='idle';publish();drawTimer();return}
+ if(!g){T.spect=true;T.phase='idle';T.running=false;T.cycle=1;T.pdone=false;T.left=MODES[T.mode][0]*60;sp='idle';publish();drawTimer();return}
  const fresh=g.phase==='focus'&&(sp===null||sp==='idle'||sp==='done');
- if(fresh||T.myBase==null){T.myBase=g.phase==='break'?g.cycle+1:g.cycle;if(fresh){T.focusBase=0;T.early=false}T.pdone=false}
- const mine=g.cycle-T.myBase+1;
- const fin=g.phase!=='idle'&&(g.phase==='done'||mine>T.cycles||(mine===T.cycles&&g.phase==='break'));
+ if(!T.spect&&(fresh||T.myBase==null)){T.myBase=g.phase==='break'?g.cycle+1:g.cycle;if(fresh){T.focusBase=0;T.early=false}T.pdone=false}
+ const mine=T.spect?g.cycle:g.cycle-T.myBase+1;
+ const fin=!T.spect&&g.phase!=='idle'&&(g.phase==='done'||mine>T.cycles||(mine===T.cycles&&g.phase==='break'));
  T.mode=g.mode;
  if(fin){
   const was=T.pdone;T.pdone=true;T.phase='done';T.running=false;T.end=0;T.left=0;T.cycle=Math.max(1,Math.min(mine,T.cycles));
   if(!was){logSession();if(op==='focus'||op==='break')beep()}
  }else{
   T.pdone=false;T.cycle=Math.max(1,mine);T.phase=g.phase;T.running=!!g.running;T.end=g.running?g.end-svOff:0;T.left=g.left||0;
-  if(T.phase==='focus'&&T.running){T.focusSince=T.lastLog=Date.now()}
-  if(op!==g.phase&&(op==='focus'||op==='break')&&g.phase!=='idle')beep();
+  if(!T.spect&&T.phase==='focus'&&T.running){T.focusSince=T.lastLog=Date.now()}
+  if(!T.spect&&op!==g.phase&&(op==='focus'||op==='break')&&g.phase!=='idle')beep();
  }
- sp=g.phase;publish();drawTimer();
+ sp=g.phase;if(g.phase==='idle'&&lockMode)T.spect=true;publish();drawTimer();
+}
+function joinFocus(){
+ T.spect=false;const g=rt||{};
+ if(g.phase==='focus'||g.phase==='break'){T.myBase=g.phase==='break'?g.cycle+1:g.cycle;T.focusBase=0;T.early=false;T.pdone=false;T.focusSince=T.lastLog=0;applyShared(rt)}
+ else{T.myBase=null;T.pdone=false;T.focusBase=0;T.early=false;sGo()}
 }
 function sGo(){
  keepAlive(true);const g=rt||{},q=(g.seq||0)+1;
@@ -393,7 +462,7 @@ async function leave(){
  unsubs.forEach(f=>f());unsubs=[];
  if(lockMode){const mid=T.phase==='focus'||T.phase==='break';stopClock();if(mid){T.early=true;logSession()}T.phase='idle';T.running=false;T.focusBase=0;T.left=MODES[T.mode][0]*60;rt=null;T.myBase=null;T.pdone=false;sp=null}
  if(room&&me){try{await remove(ref(db,`rooms/${room}/members/${me.uid}`))}catch(e){}}
- $('#room').classList.add('hide');room=null;lockMode=false;members={};$('#chat').innerHTML='';$('#rn').textContent='Pick a room to study together.';drawRooms();drawTimer();drawMembers();
+ $('#room').classList.add('hide');room=null;lockMode=false;T.spect=false;members={};$('#chat').innerHTML='';$('#rn').textContent='Pick a room to study together.';drawRooms();drawTimer();drawMembers();
 }
 async function joinRoom(c){try{await joinRoom0(c)}catch(e){alert('Could not join this room: '+e.message+'\n\nMake sure the latest database rules are published in Firebase.')}}
 async function joinRoom0(c){
@@ -409,7 +478,7 @@ $('#pick').onclick=async e=>{const m=e.target.closest('button'),pm=m&&m.dataset.
  if(pm){try{await set(ref(db,`rooms/${pickFor}/config`),{mode:pm,by:me.name,t:Date.now()});await set(ref(db,`rooms/${pickFor}/timer`),{mode:pm,phase:'idle',cycle:1,cycles:4,running:false,end:0,left:0,seq:Date.now()});$('#pick').classList.add('hide');enterRoom(pickFor)}catch(x){alert('Could not save the room mode: '+x.message+'\n\nPublish the latest database rules (the rooms → config part), then try again.')}}
  else if(m&&m.dataset.x)$('#pick').classList.add('hide')};
 async function enterRoom(c){
- await leave();room=c;const R=ROOMS.find(r=>r.id===c);lockMode=!!R.m;
+ await leave();room=c;const R=ROOMS.find(r=>r.id===c);lockMode=!!R.m;T.spect=!!R.m;
  onDisconnect(ref(db,`rooms/${c}/members/${me.uid}`)).remove();publish();
  if(R.m)unsubs.push(onValue(ref(db,`rooms/${c}/config`),x=>{const g=x.val();
   if(g&&g.mode&&T.mode!==g.mode&&(T.phase==='idle'||T.phase==='done')){T.mode=g.mode;T.left=MODES[g.mode][0]*60;publish()}drawTimer()}));
@@ -431,7 +500,7 @@ function drawMembers(){
  <div class="mute">Working ${fmt(work)} · cycle ${m.cycle} of ${m.cycles}</div>
  <div class="mute">Today ${fmt(m.today)} · all time ${fmt(m.all)} · ${m.streak||0}-day streak</div></div>`).join('');
  const k=lbMode==='all'?'all':'today',lb=list.slice().sort((a,b)=>b.m[k]-a.m[k]),v=x=>fmt(x.m[k]);
- $('#rcount').textContent=`${list.length} studying`;$('#lc').textContent=room?`${lb.length} in room`:'';
+ $('#rcount').textContent=`${list.filter(x=>!x.idle).length} focusing · ${list.length} in room`;$('#lc').textContent=room?`${lb.length} in room`:'';
  if(!lb.length){$('#lb').innerHTML='<p class="mute" style="text-align:center;margin-top:40px">Join a room in Friends to see the leaderboard.</p>';return}
  const hs=[130,96,72];
  $('#lb').innerHTML=`<div class="pod">${[1,0,2].filter(i=>lb[i]).map(i=>`<div><div class="av">${esc(lb[i].m.name[0]||'?').toUpperCase()}</div><b>${esc(lb[i].m.name)}</b><div class="mute">${v(lb[i])}</div><div class="blk" style="height:${hs[i]}px">${i+1}</div></div>`).join('')}</div>

@@ -136,7 +136,20 @@ nav button.on{background:#050505;color:var(--focus)}
 .tri{display:flex;text-align:center}.tri>div{flex:1;color:var(--mute);font-size:14px}.tri b{display:block;color:#fff;font-size:38px;font-weight:800}.tri small{font-size:16px;margin-left:3px}
 .mem{border-left:0;border-top:3px solid var(--line)}.mem.focus{border-top-color:var(--focus)}.mem.break{border-top-color:var(--brk)}
 .kpi .card{margin:0}
-</style><style>#room{position:fixed;inset:0;z-index:20;background:#000;overflow:auto}.rin{max-width:760px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom))}#rclk{font-weight:300;font-size:clamp(54px,18vw,76px);letter-spacing:-.04em;line-height:1}#rph{font-size:14px;font-weight:700}#rsub{font-size:13px;min-height:19px}#rgo{background:#fff;color:#000;padding:16px 44px;font-size:18px;min-width:150px}#rmode{font-weight:600}</style></head><body><main>
+</style><style>#room{position:fixed;inset:0;z-index:20;background:#000;overflow:auto}.rin{max-width:760px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom))}#rclk{font-weight:300;font-size:clamp(54px,18vw,76px);letter-spacing:-.04em;line-height:1}#rph{font-size:14px;font-weight:700}#rsub{font-size:13px;min-height:19px}#rgo{background:#fff;color:#000;padding:16px 44px;font-size:18px;min-width:150px}#rmode{font-weight:600}</style><style>
+#sum{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom))}
+#sum .box{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:24px;padding:26px 22px;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+#sum h2{margin:0 0 4px;font-size:22px}#sum .big{font-size:46px;font-weight:700;color:var(--focus);line-height:1.1;margin:10px 0 2px}
+#sum .plus{font-weight:600;margin:6px 0 14px}#sum .wk{display:flex;justify-content:center;gap:8px;margin:12px 0 4px}
+#sum .wk span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--mute)}
+#sum .wk i{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:block}
+#sum .wk i.on{background:var(--focus);border-color:var(--focus)}#sum .wk i.now{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--focus)}
+#sum .acts{display:flex;flex-direction:column;gap:8px;margin-top:18px}#sum .acts .btn{width:100%}
+.nud{display:flex;gap:6px;margin-top:10px}.nud button{flex:1;padding:7px 8px;font-size:13px}
+#toasts{position:fixed;left:0;right:0;top:max(10px,env(safe-area-inset-top));z-index:60;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+#toasts div{background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;max-width:90vw;box-shadow:0 8px 24px rgba(0,0,0,.35);animation:tin .25s}
+@keyframes tin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+</style></head><body><main>
 <section id="auth" class="card" style="max-width:360px;margin:60px auto">
 <h1>Study Together</h1><p class="mute">Sign in with a username and password. New here? Pick any username and tap Create account.</p>
 <form id="af"><div class="row" style="flex-direction:column;align-items:stretch">
@@ -145,6 +158,7 @@ nav button.on{background:#050505;color:var(--focus)}
 <div class="err" id="ae"></div>
 <div class="row"><button class="btn" id="li" type="submit">Sign in</button><button class="btn alt" id="su" type="button">Create account</button></div></div></form></section>
 
+<div id="sum" class="hide"></div><div id="toasts"></div>
 <div id="app" class="hide">
 <header><div class="row" style="flex-wrap:nowrap"><button class="btn alt" id="rf" aria-label="Refresh" title="Refresh">&#8635;</button><h1>Study<span>Together</span></h1></div><div class="pill">&#128293; <span id="stk">0</span></div></header>
 <nav><button data-t="t" class=on><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg>Home</button><button data-t="k"><svg viewBox="0 0 24 24"><path d="M4 6l2 2 3-3M12 7h8M4 16l2 2 3-3M12 17h8"/></svg>Tasks</button><button data-t="r"><svg viewBox="0 0 24 24"><path d="M9 11a3 3 0 100-6 3 3 0 000 6zM3 20c0-3 3-5 6-5s6 2 6 5M17 10a2.5 2.5 0 100-5M21 19c0-2-1.5-3.5-4-4"/></svg>Friends</button><button data-t="l"><svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a3 3 0 003 3M16 6h4v1a3 3 0 01-3 3M12 13v4M8 20h8"/></svg>Ranks</button><button data-t="s"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6"/></svg>You</button><button data-t="a" id="adtab" class="hide"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Admin</button></nav>
@@ -216,7 +230,7 @@ let statsOff=null;
 function enter(u){
  me={uid:u,name:u};try{localStorage.setItem('st_user',u)}catch(e){}
  $('#auth').classList.add('hide');$('#app').classList.remove('hide');$('#who').textContent=u;startRoomInfo();adminInit();
- statsOff=onValue(ref(db,`users/${u}`),s=>{stats=s.val()||{};drawStats();drawSubjects()});
+ statsOff=onValue(ref(db,`users/${u}`),s=>{stats=s.val()||{};drawStats();drawSubjects();if(sumSecs!=null)renderSum()});
 }
 function check(){const u=uname($('#u').value),p=$('#p').value;aerr('');
  if(!/^[a-z0-9_]{2,16}$/.test(u)){aerr('Username: 2–16 letters, numbers or _.');return null}
@@ -341,7 +355,7 @@ function begin(phase){T.phase=phase;T.left=dur();T.end=Date.now()+T.left*1000;T.
 function finish(){
  const t=Math.min(Date.now(),T.end);
  if(T.phase==='focus'){flush(t);T.focusBase+=t-T.focusSince;T.focusSince=0;T.lastLog=0;
-  if(T.cycle>=T.cycles){T.phase='done';T.running=false;T.left=0;logSession()}else begin('break')}
+  if(T.cycle>=T.cycles){T.phase='done';T.running=false;T.left=0;logSession();showSummary(false,T.focusBase/1000)}else begin('break')}
  else{T.cycle++;begin('focus')}
  beep();publish();
 }
@@ -363,11 +377,11 @@ $('#rf').onclick=async()=>{
  location.replace(location.pathname+'?r='+Date.now());
 };
 $('#fin').onclick=()=>{if(T.phase!=='focus'&&T.phase!=='break')return;
- if(lockMode){if(T.spect)return;stopClock();T.early=true;logSession();T.focusBase=0;T.pdone=false;T.spect=true;applyShared(rt);return}
+ if(lockMode){if(T.spect)return;stopClock();T.early=true;logSession();const secs=T.focusBase/1000;T.focusBase=0;T.pdone=false;T.spect=true;applyShared(rt);showSummary(true,secs);return}
  flush();
  if(T.phase==='focus'&&T.focusSince){T.focusBase+=Date.now()-T.focusSince}
  T.focusSince=0;T.lastLog=0;T.running=false;T.phase='done';T.early=true;T.left=0;logSession();
- publish();drawTimer()};
+ publish();drawTimer();showSummary(true,T.focusBase/1000)};
 $('#rst').onclick=()=>{if(lockMode)return T.spect?0:sReset();flush();T.running=false;T.phase='idle';T.cycle=1;T.focusBase=0;T.focusSince=0;T.lastLog=0;T.left=MODES[T.mode][0]*60;publish();drawTimer()};
 function applyCustom(){const f=Math.max(1,Math.min(180,Math.round(+$('#cf1').value)||40)),b=Math.max(1,Math.min(60,Math.round(+$('#cb1').value)||5));
  $('#cf1').value=f;$('#cb1').value=b;T.mode=f+'/'+b;T.left=f*60;try{localStorage.setItem('st_custom',f+'/'+b)}catch(e){}drawTimer()}
@@ -415,7 +429,7 @@ function applyShared(g){
  T.mode=g.mode;
  if(fin){
   const was=T.pdone;T.pdone=true;T.phase='done';T.running=false;T.end=0;T.left=0;T.cycle=Math.max(1,Math.min(mine,T.cycles));
-  if(!was){logSession();if(op==='focus'||op==='break')beep()}
+  if(!was){logSession();if(op==='focus'||op==='break'){beep();showSummary(false,T.focusBase/1000)}}
  }else{
   T.pdone=false;T.cycle=Math.max(1,mine);T.phase=g.phase;T.running=!!g.running;T.end=g.running?g.end-svOff:0;T.left=g.left||0;
   if(!T.spect&&T.phase==='focus'&&T.running){T.focusSince=T.lastLog=Date.now()}
@@ -447,9 +461,10 @@ function roomAdvance(){
 }
 /* ---------- rooms ---------- */
 function startRoomInfo(){
+ FW={};
  roomOffs.push(onValue(ref(db,'.info/serverTimeOffset'),x=>{svOff=x.val()||0}));
  ROOMS.forEach(r=>{
-  roomOffs.push(onValue(ref(db,`rooms/${r.id}/members`),x=>{(info[r.id]=info[r.id]||{}).n=x.exists()?Object.keys(x.val()).length:0;drawRooms()}));
+  roomOffs.push(onValue(ref(db,`rooms/${r.id}/members`),x=>{(info[r.id]=info[r.id]||{}).n=x.exists()?Object.keys(x.val()).length:0;drawRooms();friendWatch(r,x.val())}));
   roomOffs.push(onValue(ref(db,`rooms/${r.id}/config`),x=>{(info[r.id]=info[r.id]||{}).mode=(x.val()||{}).mode;drawRooms()}));
  });
 }
@@ -485,6 +500,8 @@ async function enterRoom(c){
  if(R.m)unsubs.push(onValue(ref(db,`rooms/${c}/timer`),x=>{rt=x.val();applyShared(rt)}));
  unsubs.push(onValue(ref(db,`rooms/${c}/members`),x=>{members=x.val()||{};drawMembers()}));
  unsubs.push(onChildAdded(query(ref(db,`rooms/${c}/chat`),limitToLast(50)),x=>{const m=x.val(),p=document.createElement('p');p.innerHTML=`<b>${esc(m.name)}</b> ${esc(m.text)}`;const box=$('#chat');box.appendChild(p);box.scrollTop=box.scrollHeight}));
+ const joinedAt=Date.now();unsubs.push(onChildAdded(query(ref(db,`rooms/${c}/nudges`),limitToLast(20)),x=>{const n=x.val();if(!n||!me||n.to!==me.uid||n.from===me.uid||seenN[x.key]||(n.t||0)<joinedAt-5000)return;seenN[x.key]=1;
+  const msg=n.kind==='clap'?'👏 '+n.name+' is cheering you on':'💪 '+n.name+' says keep going!';toast(msg);notify(n.kind==='clap'?'👏 Cheer from '+n.name:'💪 Keep going!',msg)},()=>{}));
  $('#rn').textContent=R.name;$('#rsubj').value=$('#subj').value;T.subject=$('#rsubj').value.trim();$('#rcyc').value=$('#cyc').value;T.cycles=Math.max(1,Math.min(12,+$('#rcyc').value||4));T.myBase=null;sp=null;T.pdone=false;$('#room').classList.remove('hide');drawRooms();drawTimer();
 }
 $('#cf').onsubmit=e=>{e.preventDefault();const t=$('#ct').value.trim();if(!t||!room)return;push(ref(db,`rooms/${room}/chat`),{uid:me.uid,name:me.name,text:t,t:Date.now()});$('#ct').value=''};
@@ -498,7 +515,7 @@ function drawMembers(){
  <div class="t ${m.phase==='focus'?'f':m.phase==='break'?'b':''}">${clock(rem)}</div>
  <div>${m.phase==='focus'?'Focusing':m.phase==='break'?'On break':m.phase==='done'?'Finished':'Idle'}${!m.running&&!idle?' (paused)':''}</div>
  <div class="mute">Working ${fmt(work)} · cycle ${m.cycle} of ${m.cycles}</div>
- <div class="mute">Today ${fmt(m.today)} · all time ${fmt(m.all)} · ${m.streak||0}-day streak</div></div>`).join('');
+ <div class="mute">Today ${fmt(m.today)} · all time ${fmt(m.all)} · ${m.streak||0}-day streak</div>${me&&id!==me.uid&&m.phase==='focus'?`<div class="nud"><button class="btn alt" data-n="clap" data-to="${esc(id)}">👏 Clap</button><button class="btn alt" data-n="keep" data-to="${esc(id)}">💪 Keep going</button></div>`:''}</div>`).join('');
  const k=lbMode==='all'?'all':'today',lb=list.slice().sort((a,b)=>b.m[k]-a.m[k]),v=x=>fmt(x.m[k]);
  $('#rcount').textContent=`${list.filter(x=>!x.idle).length} focusing · ${list.length} in room`;$('#lc').textContent=room?`${lb.length} in room`:'';
  if(!lb.length){$('#lb').innerHTML='<p class="mute" style="text-align:center;margin-top:40px">Join a room in Friends to see the leaderboard.</p>';return}
@@ -533,6 +550,8 @@ function drawStats(){
  $('#you').innerHTML=`<div class="card"><div class="row" style="flex-wrap:nowrap"><div class="av big">${esc(me?me.name[0]:'?').toUpperCase()}</div><div><b style="font-size:22px">${esc(me?me.name:'')}</b><div class="mute">${fmt(stats.total||0)} studied in total</div></div></div></div>
  <div class="card tri"><div><b>${Math.floor((stats.total||0)/3600)}<small>h</small></b>Studied</div><div><b>${bs}<small>days</small></b>Best streak</div><div><b>${ses.length}</b>Sessions</div></div>
  <div class="card"><h3>Alarm sound</h3><div class="row">${Object.entries(ALARMS).map(([k,a])=>`<button class="btn ${k===alarmId?'':'alt'}" data-al="${k}">${a.n}</button>`).join('')}</div><p class="mute" style="margin:10px 0 0">Tap a sound to hear it. On iPhone, leave the app open in the background (don’t swipe it away) while a session runs.</p></div>
+ <div class="card"><h3>Alerts</h3><label class="row" style="flex-wrap:nowrap;gap:10px"><input type="checkbox" data-tg="friend" ${friendOn()?'checked':''}> <span>Tell me when a friend starts studying</span></label><p class="mute" style="margin:8px 0 0">Shows the friend’s name. Works while the app is open or in the background; see the setup notes for alerts while the app is fully closed.</p></div>
+ <div class="card"><h3>Block distractions</h3>${isNative?`<label class="row" style="flex-wrap:nowrap;gap:10px"><input type="checkbox" data-tg="block" ${stOn?'checked':''}> <span>Block YouTube &amp; chosen apps while the timer is running</span></label><div class="row" style="margin-top:10px"><button class="btn alt" data-tg="stauth">Allow Screen Time</button><button class="btn alt" data-tg="stpick">Choose apps &amp; sites</button></div><p class="mute" id="stst" style="margin:8px 0 0"></p>`:`<p class="mute" style="margin:0">Available in the iPhone app. Blocking uses iOS Screen Time, so it can’t work in a browser.</p>`}</div>
  <div class="kpi"><div class="card"><b>${st} days</b><span class="mute">Current streak</span></div><div class="card"><b>${fmt(Math.max(0,...all.map(dayTotal)))}</b><span class="mute">Best day</span></div><div class="card"><b>${fmt(m30/30)}</b><span class="mute">Daily avg (30d)</span></div></div>
  <div class="card"><h3>By subject</h3>${sl.length?sl.map(([s,v])=>`<div class="sb">${esc(s)} <span class="mute">${fmt(v)}</span><i style="width:${v/sm*100}%"></i></div>`).join(''):'<span class="mute">Finish a focus session to see subjects here.</span>'}</div>`;
  drawTasks();
@@ -576,4 +595,88 @@ async function keepAwake(){try{if(T.running&&!wl&&navigator.wakeLock){wl=await n
 setInterval(()=>{keepAwake();syncAudio()},2000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(T.running&&Date.now()>=T.end){lockMode?roomAdvance():finish()}else if(T.running&&T.phase==='focus'){flush();publish()}keepAwake();drawTimer()}});
 drawTimer();
+
+/* ---------- toasts, alerts, finish summary, nudges, screen-time blocking ---------- */
+let FW={},seenN={},sumSecs=null,sumEarly=false;
+function toast(t){const b=document.getElementById('toasts');if(!b)return;const d=document.createElement('div');d.textContent=t;b.appendChild(d);setTimeout(()=>d.remove(),4500)}
+function notify(title,body){
+ try{if(isNative&&LN){LN.schedule({notifications:[{id:900000+Math.floor(Math.random()*90000),title,body,schedule:{at:new Date(Date.now()+400)}}]});return}}catch(e){}
+ try{if(window.Notification&&Notification.permission==='granted'&&document.hidden)new Notification(title,{body,icon:'icon-192.png'})}catch(e){}
+}
+function friendOn(){try{return localStorage.getItem('st_friend')!=='0'}catch(e){return true}}
+function friendWatch(r,mem){
+ const prev=FW[r.id],cur={};
+ Object.entries(mem||{}).forEach(([id,m])=>{
+  cur[id]=(m.phase==='focus'&&m.running)?1:0;
+  if(prev&&me&&id!==me.uid&&cur[id]&&!prev[id]&&friendOn()&&Date.now()-(m.t||0)<20000){
+   const body=r.name+(m.subject?' · '+m.subject:'');
+   toast('📚 '+m.name+' started studying');notify(m.name+' started studying',body);
+  }
+ });
+ FW[r.id]=cur;
+}
+/* finish summary */
+function sumHTML(){
+ const mins=Math.round((sumSecs||0)/60),today=dayTotal(dk()),st=streak();
+ const days=[];const d=new Date();d.setDate(d.getDate()-6);
+ for(let i=0;i<7;i++){const k=dk(d);days.push(`<span><i class="${dayTotal(k)>0?'on':''} ${i===6?'now':''}"></i>${'SMTWTFS'[d.getDay()]}</span>`);d.setDate(d.getDate()+1)}
+ const line=(sumSecs||0)<60?'Under a minute, so this one wasn’t saved.':`+${mins} min today`;
+ return `<div class="box"><h2>${sumEarly?'Nice work, you showed up 💪':'Session complete 🎉'}</h2>
+ <div class="mute">${sumEarly?'Finished early — every minute counts':'All rounds done'}</div>
+ <div class="big">${(sumSecs||0)<60?'<1m':fmt(sumSecs)}</div><div class="mute">studied this session</div>
+ <div class="plus">${line}${today?` · ${fmt(today)} total today`:''}</div>
+ <div style="font-size:18px;font-weight:700">${st>0?'🔥 '+st+'-day streak':'Start your streak today'}</div>
+ <div class="wk">${days.join('')}</div>
+ <div class="acts"><button class="btn" id="sumGo">Start another</button><button class="btn alt" id="sumX">Done</button></div></div>`;
+}
+function renderSum(){const el=document.getElementById('sum');if(el&&!el.classList.contains('hide'))el.innerHTML=sumHTML()}
+function showSummary(early,secs){sumSecs=Math.max(0,secs||0);sumEarly=early;const el=document.getElementById('sum');el.innerHTML=sumHTML();el.classList.remove('hide');try{hap&&hap('MEDIUM')}catch(e){}}
+function closeSum(){sumSecs=null;document.getElementById('sum').classList.add('hide')}
+document.getElementById('sum').addEventListener('click',e=>{
+ if(e.target.id==='sumGo'){closeSum();if(lockMode)joinFocus();else $('#go').click()}
+ else if(e.target.id==='sumX'||e.target===e.currentTarget)closeSum();
+});
+/* nudges */
+let lastNudge={};
+document.getElementById('mem').addEventListener('click',async e=>{
+ const b=e.target.closest('button[data-n]');if(!b||!me||!room)return;
+ const to=b.dataset.to,kind=b.dataset.n,k=to+kind;if(Date.now()-(lastNudge[k]||0)<10000)return toast('Easy! Wait a few seconds');
+ lastNudge[k]=Date.now();const nm=(members[to]&&members[to].name)||'your friend';
+ try{await push(ref(db,`rooms/${room}/nudges`),{from:me.uid,name:me.name,to,kind,t:Date.now()})}
+ catch(err){try{await push(ref(db,`rooms/${room}/chat`),{uid:me.uid,name:me.name,text:(kind==='clap'?'👏 clapped for ':'💪 cheered on ')+nm,t:Date.now()})}catch(x){return toast('Could not send')}}
+ toast(kind==='clap'?'👏 Sent to '+nm:'💪 Sent to '+nm);
+});
+/* settings toggles + Screen Time */
+const ST=isNative?NP('ScreenTime'):null;
+let stOn=false,stBlocked=false;try{stOn=localStorage.getItem('st_block')==='1'}catch(e){}
+async function stStatus(){const el=document.getElementById('stst');if(!el||!ST)return;try{const r=await ST.getStatus();el.textContent=r.authorized?(r.apps+r.sites+r.categories>0?`Ready · ${r.apps} apps, ${r.sites} sites, ${r.categories} categories chosen`:'Allowed. Now tap “Choose apps & sites” and pick YouTube.'):'Screen Time access not allowed yet.'}catch(e){el.textContent='Screen Time plugin not installed in this build yet (see setup notes).'}}
+function stWant(){return !!(isNative&&ST&&stOn&&T.running&&T.phase==='focus'&&!T.spect)}
+async function stSync(){const w=stWant();if(w===stBlocked)return;stBlocked=w;try{if(w)await ST.startBlocking({endMs:T.end});else await ST.stopBlocking()}catch(e){}}
+setInterval(stSync,1000);
+setInterval(()=>{if(document.getElementById('stst')&&!document.getElementById('stst').textContent)stStatus()},1500);
+document.getElementById('you').addEventListener('change',async e=>{
+ const t=e.target.dataset&&e.target.dataset.tg;if(!t)return;
+ if(t==='friend'){try{localStorage.setItem('st_friend',e.target.checked?'1':'0')}catch(x){}
+  if(e.target.checked){try{if(isNative&&LN)await LN.requestPermissions();else if(window.Notification&&Notification.permission==='default')await Notification.requestPermission()}catch(x){}}}
+ if(t==='block'){
+  if(e.target.checked){
+   try{if(LN)await LN.requestPermissions()}catch(x){}
+   try{await ST.requestAuthorization();const r=await ST.getStatus();if(!(r.apps+r.sites+r.categories))await ST.pickApps();stOn=true}catch(x){stOn=false;e.target.checked=false;toast('Screen Time was not allowed')}
+  }else stOn=false;
+  try{localStorage.setItem('st_block',stOn?'1':'0')}catch(x){} stStatus();
+ }
+});
+document.getElementById('you').addEventListener('click',async e=>{
+ const t=e.target.dataset&&e.target.dataset.tg;if(t!=='stauth'&&t!=='stpick')return;
+ try{if(t==='stauth')await ST.requestAuthorization();else await ST.pickApps()}catch(x){toast('Screen Time: '+(x.message||'not available'))}
+ stStatus();
+});
+/* optional: register for push so alerts reach you when the app is closed (needs native push + Cloud Function, see setup notes) */
+async function pushInit(){
+ if(!isNative||!me)return;
+ try{const PN=NP('PushNotifications');const p=await PN.requestPermissions();if(p.receive!=='granted')return;
+  PN.addListener('registration',t=>{set(ref(db,`users/${me.uid}/push`),{token:t.value,p:'ios',t:Date.now()})});await PN.register()}catch(e){}
+}
+setTimeout(pushInit,4000);
+
 </script></main></body></html>

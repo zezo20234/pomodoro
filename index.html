@@ -143,6 +143,10 @@ nav button.on{background:#050505;color:var(--focus)}
 #sum .plus{font-weight:600;margin:6px 0 14px}#sum .wk{display:flex;justify-content:center;gap:8px;margin:12px 0 4px}
 #sum .wk span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--mute)}
 #sum .wk i{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:block}
+#upd{position:fixed;inset:0;z-index:55;background:var(--bg);color:var(--ink);display:flex;align-items:center;justify-content:center;padding:24px;padding-top:max(24px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));overflow:auto}
+#upd .box{width:100%;max-width:380px;text-align:center}#upd h2{margin:6px 0 8px;font-size:26px}#upd .big{font-size:56px;margin:4px 0}
+#upd .acts{display:flex;flex-direction:column;gap:10px;margin-top:22px}#upd .acts .btn{width:100%;padding:14px 20px;font-size:17px}
+#upd .note{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:14px 0;text-align:left;font-size:14px}
 #sum .wk i.on{background:var(--focus);border-color:var(--focus)}#sum .wk i.now{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--focus)}
 #sum .acts{display:flex;flex-direction:column;gap:8px;margin-top:18px}#sum .acts .btn{width:100%}
 .nud{display:flex;gap:6px;margin-top:10px}.nud button{flex:1;padding:7px 8px;font-size:13px}
@@ -158,7 +162,7 @@ nav button.on{background:#050505;color:var(--focus)}
 <div class="err" id="ae"></div>
 <div class="row"><button class="btn" id="li" type="submit">Sign in</button><button class="btn alt" id="su" type="button">Create account</button></div></div></form></section>
 
-<div id="sum" class="hide"></div><div id="toasts"></div>
+<div id="sum" class="hide"></div><div id="upd" class="hide"></div><div id="toasts"></div>
 <div id="app" class="hide">
 <header><div class="row" style="flex-wrap:nowrap"><button class="btn alt" id="rf" aria-label="Refresh" title="Refresh">&#8635;</button><h1>Study<span>Together</span></h1></div><div class="pill">&#128293; <span id="stk">0</span></div></header>
 <nav><button data-t="t" class=on><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg>Home</button><button data-t="k"><svg viewBox="0 0 24 24"><path d="M4 6l2 2 3-3M12 7h8M4 16l2 2 3-3M12 17h8"/></svg>Tasks</button><button data-t="r"><svg viewBox="0 0 24 24"><path d="M9 11a3 3 0 100-6 3 3 0 000 6zM3 20c0-3 3-5 6-5s6 2 6 5M17 10a2.5 2.5 0 100-5M21 19c0-2-1.5-3.5-4-4"/></svg>Friends</button><button data-t="l"><svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a3 3 0 003 3M16 6h4v1a3 3 0 01-3 3M12 13v4M8 20h8"/></svg>Ranks</button><button data-t="s"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6"/></svg>You</button><button data-t="a" id="adtab" class="hide"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Admin</button></nav>
@@ -217,6 +221,7 @@ let me=null,stats={},room=null,members={},unsubs=[];
 const ROOMS=[{id:'lounge',name:'Study Lounge',d:'First one in picks the Pomodoro for everyone.',m:1},{id:'library',name:'Quiet Library',d:'First one in picks the Pomodoro for everyone.',m:1},{id:'open',name:'Open Study',d:'Just study together. Everyone runs their own timer.',m:0}];
 let lockMode=false,info={},roomOffs=[],pickFor=null,svOff=0,rt=null,adv=0,sp=null,allUsers={},adSel=null,adOff=null;
 const T={mode:'25/5',cycles:4,subject:'',phase:'idle',cycle:1,running:false,end:0,left:1500,focusBase:0,focusSince:0,lastLog:0};
+let updOff=null,updShown=false,updSnooze=0,updCur=null,FW={},seenN={},sumSecs=null,sumEarly=false,lastNudge={},stOn=false,stBlocked=false; /* declared early: enter() runs at load */
 const dur=()=>MODES[T.mode][T.phase==='break'?1:0]*60;
 
 /* ---------- accounts stored in Realtime Database (salted PBKDF2 hash, never the plain password) ---------- */
@@ -341,7 +346,7 @@ async function nativeSync(){
   const nst=document.getElementById('nst');if(nst)nst.textContent=(T.running&&!T.spect)?(kit?'Alarm: system alarm (rings on silent)':'Alarm: notification + in-app sound'):'';
   if(LN){
    const p=await LN.getPending();
-   if(p.notifications&&p.notifications.length)await LN.cancel({notifications:p.notifications.map(n=>({id:n.id}))});
+   if(p.notifications&&p.notifications.filter(n=>n.id<1000).length)await LN.cancel({notifications:p.notifications.filter(n=>n.id<1000).map(n=>({id:n.id}))});
    if(!kit&&items.length)await LN.schedule({notifications:items.map((c,i)=>({id:i+1,title:c.title,body:c.body,schedule:{at:new Date(c.at),allowWhileIdle:true},sound:'alarm.wav'}))});
   }
   if(LA){
@@ -597,7 +602,6 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(T.runn
 drawTimer();
 
 /* ---------- toasts, alerts, finish summary, nudges, screen-time blocking ---------- */
-let FW={},seenN={},sumSecs=null,sumEarly=false;
 function toast(t){const b=document.getElementById('toasts');if(!b)return;const d=document.createElement('div');d.textContent=t;b.appendChild(d);setTimeout(()=>d.remove(),4500)}
 function notify(title,body){
  try{if(isNative&&LN){LN.schedule({notifications:[{id:900000+Math.floor(Math.random()*90000),title,body,schedule:{at:new Date(Date.now()+400)}}]});return}}catch(e){}
@@ -624,7 +628,7 @@ function sumHTML(){
  return `<div class="box"><h2>${sumEarly?'Nice work, you showed up 💪':'Session complete 🎉'}</h2>
  <div class="mute">${sumEarly?'Finished early — every minute counts':'All rounds done'}</div>
  <div class="big">${(sumSecs||0)<60?'<1m':fmt(sumSecs)}</div><div class="mute">studied this session</div>
- <div class="plus">${line}${today?` · ${fmt(today)} total today`:''}</div>
+ <div class="plus">${line}${today>=60?` · ${fmt(today)} total today`:''}</div>
  <div style="font-size:18px;font-weight:700">${st>0?'🔥 '+st+'-day streak':'Start your streak today'}</div>
  <div class="wk">${days.join('')}</div>
  <div class="acts"><button class="btn" id="sumGo">Start another</button><button class="btn alt" id="sumX">Done</button></div></div>`;
@@ -637,7 +641,6 @@ document.getElementById('sum').addEventListener('click',e=>{
  else if(e.target.id==='sumX'||e.target===e.currentTarget)closeSum();
 });
 /* nudges */
-let lastNudge={};
 document.getElementById('mem').addEventListener('click',async e=>{
  const b=e.target.closest('button[data-n]');if(!b||!me||!room)return;
  const to=b.dataset.to,kind=b.dataset.n,k=to+kind;if(Date.now()-(lastNudge[k]||0)<10000)return toast('Easy! Wait a few seconds');
@@ -648,7 +651,7 @@ document.getElementById('mem').addEventListener('click',async e=>{
 });
 /* settings toggles + Screen Time */
 const ST=isNative?NP('ScreenTime'):null;
-let stOn=false,stBlocked=false;try{stOn=localStorage.getItem('st_block')==='1'}catch(e){}
+try{stOn=localStorage.getItem('st_block')==='1'}catch(e){}
 async function stStatus(){const el=document.getElementById('stst');if(!el||!ST)return;try{const r=await ST.getStatus();el.textContent=r.authorized?(r.apps+r.sites+r.categories>0?`Ready · ${r.apps} apps, ${r.sites} sites, ${r.categories} categories chosen`:'Allowed. Now tap “Choose apps & sites” and pick YouTube.'):'Screen Time access not allowed yet.'}catch(e){el.textContent='Screen Time plugin not installed in this build yet (see setup notes).'}}
 function stWant(){return !!(isNative&&ST&&stOn&&T.running&&T.phase==='focus'&&!T.spect)}
 async function stSync(){const w=stWant();if(w===stBlocked)return;stBlocked=w;try{if(w)await ST.startBlocking({endMs:T.end});else await ST.stopBlocking()}catch(e){}}
@@ -678,5 +681,95 @@ async function pushInit(){
   PN.addListener('registration',t=>{set(ref(db,`users/${me.uid}/push`),{token:t.value,p:'ios',t:Date.now()})});await PN.register()}catch(e){}
 }
 setTimeout(pushInit,4000);
+
+
+/* =====================================================================================
+   IPHONE APP ONLY (runs only when isNative, i.e. inside the Capacitor iOS app).
+   >>> NOTE FOR ANY AI / DEVELOPER: DO NOT ADD THIS TO THE LAPTOP / WEB VERSION. <<<
+   What it does:
+   1) Free Apple-ID installs expire after 7 days. On day 6 the app opens an "Update" page
+      (and a local notification is scheduled for day 6) reminding the user to refresh/reinstall.
+   2) The admin (zezo) can send an update message to everyone (Firebase: app/update).
+      Users get an in-app page + notification. (The admin SENDER card is in the Admin tab.)
+   An app cannot re-sign itself: the real 7-day reset only happens when the user reinstalls
+   with iLoader / SideStore. The page's last step is a confirm button that resets the local timer.
+   ===================================================================================== */
+const IOS_UPDATE_URL='';/* optional default install link, e.g. 'sidestore://install?url=https://github.com/YOU/REPO/releases/latest/download/StudyTogether.ipa' */
+const REFRESH_DAYS=6,EXPIRE_DAYS=7,DAY=86400000;
+const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}return null};
+function refreshedAt(){let t=+ls('st_refreshed');if(!t){t=Date.now();ls('st_refreshed',t)}return t}
+async function clearWebCache(){try{if('serviceWorker' in navigator){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}}
+function scheduleExpiryNote(){
+ if(!isNative||!LN)return;
+ (async()=>{try{
+  await LN.cancel({notifications:[{id:700001},{id:700002}]});
+  const t=refreshedAt(),now=Date.now(),list=[];
+  if(t+REFRESH_DAYS*DAY>now)list.push({id:700001,title:'Time to refresh Study Together',body:'Your install expires tomorrow. Open the app and tap Update.',schedule:{at:new Date(t+REFRESH_DAYS*DAY)}});
+  if(t+(EXPIRE_DAYS*DAY)-6*3600000>now)list.push({id:700002,title:'Study Together expires soon',body:'Less than 6 hours left. Open the app to update now.',schedule:{at:new Date(t+EXPIRE_DAYS*DAY-6*3600000)}});
+  if(list.length)await LN.schedule({notifications:list});
+ }catch(e){}})();
+}
+function updHTML(){
+ const age=(Date.now()-refreshedAt())/DAY,left=Math.max(0,EXPIRE_DAYS-age),due=age>=REFRESH_DAYS,rel=updCur&&(+updCur.v||0)>(+ls('st_seen_upd')||0);
+ const leftTxt=left>=1?Math.floor(left)+' day'+(Math.floor(left)===1?'':'s')+' left':Math.max(0,Math.round(left*24))+' hours left';
+ const url=(updCur&&updCur.url)||IOS_UPDATE_URL;
+ return `<div class="box"><div class="big">${rel?'🆕':'⏳'}</div>
+ <h2>${rel?esc(updCur.title||'New update available'):'Time to refresh the app'}</h2>
+ <div class="mute">${due?'Your install lasts 7 days · '+leftTxt:'Installed '+Math.floor(age)+' day(s) ago'}</div>
+ ${rel&&updCur.msg?`<div class="note">${esc(updCur.msg)}</div>`:''}
+ <div class="note" id="updHelp">${url?'Tap <b>Update</b> to load the newest version and open the install link.':'Tap <b>Update</b> to load the newest version. To reset the 7-day limit, reinstall the app with iLoader / SideStore, then tap “I’ve updated”.'}</div>
+ <div class="acts"><button class="btn" id="updGo">Update</button><button class="btn alt hide" id="updDone">I’ve updated — reset 7-day timer</button><button class="btn alt" id="updLater">Later</button></div></div>`;
+}
+function showUpd(){if(!isNative||!me)return;document.getElementById('upd').innerHTML=updHTML();document.getElementById('upd').classList.remove('hide');updShown=true;try{hap('MEDIUM')}catch(e){}}
+function hideUpd(){document.getElementById('upd').classList.add('hide');updShown=false}
+function markSeen(){if(updCur)ls('st_seen_upd',String(+updCur.v||0))}
+document.getElementById('upd').addEventListener('click',async e=>{
+ const id=e.target.id;
+ if(id==='updLater'){updSnooze=Date.now()+60*60000;hideUpd()}
+ else if(id==='updGo'){
+  const url=(updCur&&updCur.url)||IOS_UPDATE_URL;markSeen();
+  await clearWebCache();
+  document.getElementById('updDone').classList.remove('hide');
+  if(url){try{window.open(url,'_blank')}catch(x){location.href=url}document.getElementById('updHelp').textContent='Install link opened. Finish the install, come back, then tap “I’ve updated”.'}
+  else{document.getElementById('updHelp').innerHTML='Newest web version cached. Now reinstall with iLoader / SideStore if you want to reset the 7-day limit, then tap “I’ve updated”. <a href="#" id="updReload" style="color:var(--focus)">Reload now</a>'}
+ }
+ else if(id==='updReload'){e.preventDefault();location.replace(location.pathname+'?r='+Date.now())}
+ else if(id==='updDone'){ls('st_refreshed',String(Date.now()));markSeen();scheduleExpiryNote();hideUpd();toast('✅ 7-day timer reset')}
+});
+function updCheck(){
+ if(!isNative||!me||updShown||Date.now()<updSnooze)return;
+ const age=(Date.now()-refreshedAt())/DAY,rel=updCur&&(+updCur.v||0)>(+ls('st_seen_upd')||0);
+ if(age>=REFRESH_DAYS||rel)showUpd();
+}
+function startUpd(){
+ if(updOff)return;
+ updOff=onValue(ref(db,'app/update'),x=>{
+  const u=x.val();if(!u)return;
+  const fresh=(+u.v||0)>(+ls('st_seen_upd')||0);updCur=u;
+  if(isNative&&fresh){notify(u.title||'New update available',u.msg||'Open Study Together to update.');toast('🆕 '+(u.title||'New update available'))}
+  updCheck();
+ },()=>{});
+}
+/* Admin (zezo) sender. The sender card is intentionally available wherever the Admin tab exists. */
+function adminUpdCard(){
+ if(!me||me.uid!=='zezo'||document.getElementById('upsend'))return;
+ const sec=document.getElementById('a');if(!sec)return;
+ const c=document.createElement('div');c.id='upsend';c.className='card';c.style.marginBottom='12px';
+ c.innerHTML=`<h3>Send app update to everyone</h3><p class="mute" style="margin:0 0 10px">Phones with the iPhone app get a notification + an Update page the next time they open it.</p>
+ <input id="upt" placeholder="Title (e.g. New version is out)" maxlength="80" style="width:100%;margin-bottom:8px"><input id="upm" placeholder="Message (what’s new)" maxlength="200" style="width:100%;margin-bottom:8px"><input id="upu" placeholder="Install link (optional, e.g. sidestore://install?url=…)" maxlength="400" style="width:100%;margin-bottom:10px">
+ <button class="btn" id="upgo">Send update now</button><p class="mute" id="ups" style="margin:8px 0 0"></p>`;
+ sec.insertBefore(c,sec.children[2]||null);
+ document.getElementById('upgo').onclick=async()=>{
+  const st=document.getElementById('ups');
+  const rec={v:Date.now(),title:document.getElementById('upt').value.trim()||'New update available',msg:document.getElementById('upm').value.trim(),url:document.getElementById('upu').value.trim(),by:me.name};
+  try{await set(ref(db,'app/update'),rec);st.textContent='✅ Sent. Everyone gets it next time the app is open.'}catch(err){st.textContent='Could not send: '+err.message+' (add a database rule for app/update, see notes)'}
+ };
+}
+setInterval(()=>{
+ if(me&&!updOff){startUpd();scheduleExpiryNote()}
+ if(!me&&updOff){updOff();updOff=null;updCur=null;hideUpd()}
+ adminUpdCard();updCheck();
+},2000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)updCheck()});
 
 </script></main></body></html>

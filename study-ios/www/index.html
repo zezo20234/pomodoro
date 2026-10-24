@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Study">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Study Together</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--ink:#1c1e21;--mute:#6b7075;--line:#e4e4e0;--focus:#0f766e;--brk:#b45309;--r:10px}
+@media(prefers-color-scheme:dark){:root{--bg:#141516;--card:#1d1f21;--ink:#ececea;--mute:#9a9fa5;--line:#2c2f33;--focus:#2dd4bf;--brk:#fbbf24}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:760px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+input,select{font-size:16px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+h1{font-size:18px;margin:0;font-weight:650}
+nav{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px}
+button,input,select{font:inherit;color:inherit}
+nav button{background:none;border:0;padding:8px 14px;color:var(--mute);border-bottom:2px solid transparent;cursor:pointer}
+nav button.on{color:var(--ink);border-color:var(--ink)}
+.btn{background:var(--ink);color:var(--bg);border:0;border-radius:var(--r);padding:9px 16px;cursor:pointer}
+.btn.alt{background:none;color:var(--ink);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+input,select{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:9px 12px;width:100%}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mute{color:var(--mute);font-size:13px}
+#clk{font-size:min(22vw,120px);font-weight:300;letter-spacing:-.03em;text-align:center;font-variant-numeric:tabular-nums;line-height:1.1}
+#ph{text-align:center;font-weight:600}
+.modes button{flex:1;padding:8px;border:1px solid var(--line);background:var(--card);border-radius:var(--r);cursor:pointer}
+.modes button.on{border-color:var(--ink);font-weight:600}
+.modes button:disabled{opacity:.5;cursor:default}
+.dots{display:flex;gap:6px;justify-content:center;margin:8px 0 14px}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}.dots i.d{background:var(--focus)}.dots i.c{outline:2px solid var(--focus);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.mem b{display:block}.mem .t{font-size:28px;font-variant-numeric:tabular-nums;font-weight:300}
+.f{color:var(--focus)}.b{color:var(--brk)}
+.sec{margin-top:16px}.sec h2{font-size:14px;margin:0 0 8px}
+.lb div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)}
+#chat{height:220px;overflow:auto;margin-bottom:8px}#chat p{margin:0 0 6px}
+.bars{display:flex;gap:8px;align-items:flex-end;height:150px}
+.bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:11px;color:var(--mute)}
+.bars span{width:100%;background:var(--focus);border-radius:4px 4px 0 0;min-height:2px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px}
+.kpi b{display:block;font-size:24px;font-weight:600}
+.sb{margin:6px 0}.sb i{display:block;height:6px;background:var(--focus);border-radius:3px;margin-top:2px}
+.err{color:#c0392b;font-size:13px;min-height:18px}
+.hide{display:none!important}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3f5;--card:#fff;--ink:#14202b;--mute:#6a7885;--line:#e1e8ed;--focus:#0d9488;--brk:#e08a1e;--on:#fff;--sh:0 1px 2px rgba(20,32,43,.05),0 10px 28px rgba(20,32,43,.06)}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1317;--card:#151d23;--ink:#e8eef2;--mute:#8d9aa5;--line:#25303a;--focus:#2dd4bf;--brk:#fbbf24;--on:#032421;--sh:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.25)}}
+body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:var(--bg)}
+main{padding-bottom:110px}
+h1{font-size:19px;letter-spacing:-.01em}
+.card{border:0;border-radius:20px;box-shadow:var(--sh);padding:20px}
+.btn{border-radius:999px;padding:10px 20px;font-weight:600;transition:transform .1s}
+.btn:active{transform:scale(.97)}
+.btn.alt{border-color:var(--line);background:var(--card)}
+input,select{border-radius:14px;background:var(--bg);border:1px solid transparent;padding:11px 14px}
+input:focus{border-color:var(--focus);outline:0}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:5;margin:0;justify-content:center;gap:6px;padding:8px 14px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card) 85%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+nav button{flex:1;max-width:170px;border:0;border-radius:14px;padding:11px;font-weight:600}
+nav button.on{background:var(--ink);color:var(--card);border:0}
+.ring{position:relative;width:min(76vw,300px);aspect-ratio:1;margin:4px auto 10px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:9}
+.ring .tr{stroke:var(--line)}
+.ring .ar{stroke:var(--focus);stroke-linecap:round;stroke-dasharray:628.32;stroke-dashoffset:0;transition:stroke-dashoffset .5s linear,stroke .3s}
+.ring.brk .ar{stroke:var(--brk)}
+.ring .mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#clk{font-size:clamp(48px,16vw,68px);font-weight:500;letter-spacing:-.04em;line-height:1}
+#ph{font-size:14px;font-weight:700}
+#sub{font-size:13px;min-height:19px}
+.modes{background:var(--bg);padding:4px;border-radius:999px;gap:0!important}
+.modes button{border:0;background:none;border-radius:999px;padding:9px;font-weight:600;color:var(--mute)}
+.modes button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.14)}
+#go{background:var(--focus);color:var(--on);padding:14px 40px;font-size:17px;min-width:150px}
+.dots{margin:2px 0 16px}.dots i{width:9px;height:9px}
+.mem{border-left:5px solid var(--line)}.mem.focus{border-left-color:var(--focus)}.mem.break{border-left-color:var(--brk)}
+.mem .av{width:38px;height:38px;border-radius:50%;background:var(--focus);color:var(--on);display:grid;place-items:center;font-weight:700;flex:none}
+.mem .t{font-size:34px;font-weight:500;letter-spacing:-.03em;margin-top:6px}
+.sec h2,.card h2{font-size:15px;font-weight:700}
+.lb div:last-child{border-bottom:0}
+#chat p{background:var(--bg);border-radius:14px;padding:8px 12px;display:inline-block;max-width:90%}
+#chat{display:flex;flex-direction:column;align-items:flex-start}
+.kpi b{font-size:26px;letter-spacing:-.02em}
+.bars span{border-radius:8px 8px 3px 3px;background:linear-gradient(var(--focus),color-mix(in srgb,var(--focus) 55%,transparent))}
+.bars div{color:var(--mute)}
+#auth{margin:12vh auto 0!important;padding:28px}
+#auth h1{font-size:26px}
+header{margin-bottom:18px}
+#rf{border-radius:50%;width:38px;height:38px;display:grid;place-items:center;padding:0!important}
+</style><style>
+:root{--bg:#000;--card:#0b0b0b;--ink:#fff;--mute:#8b8b8b;--line:#1e1e1e;--focus:#f97316;--brk:#a3a3a3;--on:#fff;--sh:none;color-scheme:dark}
+body{background:#000}main{padding-bottom:120px}
+h1{font-size:22px;font-weight:800;letter-spacing:-.02em}h1 span{color:#777}
+.card{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:20px;margin-bottom:12px;box-shadow:none}
+.ttl{font-size:34px;font-weight:800;letter-spacing:-.03em;margin:8px 0 2px}
+h3{font-size:15px;margin:0 0 10px;color:var(--mute);font-weight:600}
+.pill,.chip{background:#161616;border:1px solid var(--line);border-radius:999px;padding:9px 14px;font-weight:700}
+.chip{display:block;width:fit-content;margin:0 auto 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+#rf{width:40px;height:40px;border-radius:50%;background:#161616;border:1px solid var(--line);color:#fff;padding:0!important}
+input{background:#141414}
+nav{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));border:1px solid #2a2a2a;border-radius:36px;padding:6px;background:rgba(24,24,24,.82);gap:0}
+nav button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:700;background:none;color:#fff;border-radius:30px;padding:8px 2px;max-width:none}
+nav button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{background:#050505;color:var(--focus)}
+.modes{background:none;padding:0;display:flex;gap:8px!important}
+.modes button{flex:1;background:#0f0f0f;border:1px solid var(--line);border-radius:22px;padding:12px 4px;color:var(--mute);font-weight:600}
+.modes button b{display:block;font-size:15px}
+.modes button.on{background:#fff;color:#000;box-shadow:none}
+#lm{margin:12px 0}
+#go{background:#fff;color:#000;padding:16px 44px;font-size:18px}
+#clk{font-weight:300;font-size:clamp(54px,18vw,76px)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}.two .card{margin:0;padding:16px}
+.two b{display:block;font-size:30px;letter-spacing:-.03em;font-weight:800}
+.bar{height:5px;border-radius:3px;background:#222;margin-top:10px}.bar i{display:block;height:100%;background:var(--focus);border-radius:3px}
+.wk{display:flex;gap:8px;align-items:flex-end;height:150px;margin-top:12px}
+.wk div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:8px;height:100%;color:var(--mute);font-weight:700;font-size:13px}
+.wk span{width:100%;max-width:36px;border-radius:10px;background:#262626;min-height:4px}.wk .t{color:var(--focus)}.wk .t span{background:var(--focus)}
+.ses div{display:flex;gap:12px;align-items:center;padding:10px 0}.ses div>i{width:8px;height:8px;border-radius:50%;background:#333;flex:none}
+.ses div>span{flex:1}.ses b{font-size:17px}.ses .mute{display:block}.ses em{font-style:normal;font-weight:800;font-size:17px}
+.tk{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line)}
+.tk i{width:26px;height:26px;border-radius:50%;border:2px dashed #444;flex:none;cursor:pointer}.tk i.on{background:var(--focus);border:2px solid var(--focus)}
+.tk span{flex:1}.tk .dn{text-decoration:line-through;color:var(--mute)}.tk u{text-decoration:none;color:var(--mute);cursor:pointer;padding:4px 8px}
+.pod{display:flex;gap:10px;align-items:flex-end;justify-content:center;margin:16px 0}.pod>div{flex:1;text-align:center}.pod .av{margin:0 auto 6px}
+.pod .blk{background:#0f0f0f;border:1px solid var(--line);border-radius:18px 18px 0 0;font-size:34px;font-weight:800;color:#444;padding-top:10px;margin-top:8px}
+.av{width:44px;height:44px;border-radius:50%;background:var(--focus);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}.av.big{width:64px;height:64px;font-size:26px}
+.lrow{display:flex;gap:12px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line)}.lrow>span:first-child{width:22px;color:var(--mute)}.lrow b{flex:1}
+.tri{display:flex;text-align:center}.tri>div{flex:1;color:var(--mute);font-size:14px}.tri b{display:block;color:#fff;font-size:38px;font-weight:800}.tri small{font-size:16px;margin-left:3px}
+.mem{border-left:0;border-top:3px solid var(--line)}.mem.focus{border-top-color:var(--focus)}.mem.break{border-top-color:var(--brk)}
+.kpi .card{margin:0}
+</style><style>#room{position:fixed;inset:0;z-index:20;background:#000;overflow:auto}.rin{max-width:760px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom))}#rclk{font-weight:300;font-size:clamp(54px,18vw,76px);letter-spacing:-.04em;line-height:1}#rph{font-size:14px;font-weight:700}#rsub{font-size:13px;min-height:19px}#rgo{background:#fff;color:#000;padding:16px 44px;font-size:18px;min-width:150px}#rmode{font-weight:600}</style><style>
+#sum{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom))}
+#sum .box{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:24px;padding:26px 22px;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+#sum h2{margin:0 0 4px;font-size:22px}#sum .big{font-size:46px;font-weight:700;color:var(--focus);line-height:1.1;margin:10px 0 2px}
+#sum .plus{font-weight:600;margin:6px 0 14px}#sum .wk{display:flex;justify-content:center;gap:8px;margin:12px 0 4px}
+#sum .wk span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--mute)}
+#sum .wk i{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:block}
+#upd{position:fixed;inset:0;z-index:55;background:var(--bg);color:var(--ink);display:flex;align-items:center;justify-content:center;padding:24px;padding-top:max(24px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));overflow:auto}
+#upd .box{width:100%;max-width:380px;text-align:center}#upd h2{margin:6px 0 8px;font-size:26px}#upd .big{font-size:56px;margin:4px 0}
+#upd .acts{display:flex;flex-direction:column;gap:10px;margin-top:22px}#upd .acts .btn{width:100%;padding:14px 20px;font-size:17px}
+#upd .note{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:14px 0;text-align:left;font-size:14px}
+#sum .wk i.on{background:var(--focus);border-color:var(--focus)}#sum .wk i.now{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--focus)}
+#sum .acts{display:flex;flex-direction:column;gap:8px;margin-top:18px}#sum .acts .btn{width:100%}
+.nud{display:flex;gap:6px;margin-top:10px}.nud button{flex:1;padding:7px 8px;font-size:13px}
+#toasts{position:fixed;left:0;right:0;top:max(10px,env(safe-area-inset-top));z-index:60;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+#toasts div{background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;max-width:90vw;box-shadow:0 8px 24px rgba(0,0,0,.35);animation:tin .25s}
+@keyframes tin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+</style></head><body><main>
+<section id="auth" class="card" style="max-width:360px;margin:60px auto">
+<h1>Study Together</h1><p class="mute">Sign in with a username and password. New here? Pick any username and tap Create account.</p>
+<form id="af"><div class="row" style="flex-direction:column;align-items:stretch">
+<input id="u" placeholder="Username" autocomplete="username" required>
+<input id="p" type="password" placeholder="Password (6+ characters)" autocomplete="current-password" required>
+<div class="err" id="ae"></div>
+<div class="row"><button class="btn" id="li" type="submit">Sign in</button><button class="btn alt" id="su" type="button">Create account</button></div></div></form></section>
+
+<div id="sum" class="hide"></div><div id="upd" class="hide"></div><div id="toasts"></div>
+<div id="app" class="hide">
+<header><div class="row" style="flex-wrap:nowrap"><button class="btn alt" id="rf" aria-label="Refresh" title="Refresh">&#8635;</button><h1>Study<span>Together</span></h1></div><div class="pill">&#128293; <span id="stk">0</span></div></header>
+<nav><button data-t="t" class=on><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg>Home</button><button data-t="k"><svg viewBox="0 0 24 24"><path d="M4 6l2 2 3-3M12 7h8M4 16l2 2 3-3M12 17h8"/></svg>Tasks</button><button data-t="r"><svg viewBox="0 0 24 24"><path d="M9 11a3 3 0 100-6 3 3 0 000 6zM3 20c0-3 3-5 6-5s6 2 6 5M17 10a2.5 2.5 0 100-5M21 19c0-2-1.5-3.5-4-4"/></svg>Friends</button><button data-t="l"><svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a3 3 0 003 3M16 6h4v1a3 3 0 01-3 3M12 13v4M8 20h8"/></svg>Ranks</button><button data-t="s"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6"/></svg>You</button><button data-t="a" id="adtab" class="hide"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Admin</button></nav>
+<div id="room" class="hide"><div class="rin">
+<div class="row" style="justify-content:space-between;flex-wrap:nowrap"><button class="btn alt" id="rmin">&larr; Back</button><button class="btn alt" id="rleave">Leave room</button></div>
+<h2 class="ttl" id="rhead"></h2><div class="mute" id="rmode"></div><div class="chip" id="rcount" style="margin:10px 0 0"></div>
+<div class="card" style="margin-top:12px">
+<div class="ring" id="rring"><svg viewBox="0 0 220 220"><circle class="tr" cx="110" cy="110" r="100"/><circle class="ar" id="rarc" cx="110" cy="110" r="100"/></svg>
+<div class="mid"><div id="rph" class="mute"></div><div id="rclk">25:00</div><div id="rsub" class="mute"></div></div></div><div class="dots" id="rdots"></div>
+<div class="modes" id="rmodes"><button data-m="15/3"><b>Sprint</b>15 / 3</button><button data-m="25/5"><b>Classic</b>25 / 5</button><button data-m="50/10"><b>Deep</b>50 / 10</button></div>
+<div class="row" id="rset" style="margin:14px 0"><input id="rsubj" placeholder="What are you studying?" maxlength="24" style="flex:1;min-width:140px"><input id="rcyc" type="number" min="1" max="12" value="4" style="width:90px" aria-label="Cycles"></div>
+<div class="row" style="justify-content:center;margin-top:12px"><button class="btn" id="rgo">Start</button><button class="btn alt" id="rskip">Skip</button><button class="btn alt hide" id="rfin">Finish</button><button class="btn alt" id="rrst">Reset</button></div></div>
+<h3 style="margin:16px 4px 8px">In the room</h3><div class="grid" id="mem"></div>
+<div class="card sec"><h3>Chat</h3><div id="chat"></div><form id="cf" class="row"><input id="ct" placeholder="Message" maxlength="300" style="flex:1"><button class="btn">Send</button></form></div>
+</div></div>
+<section id="t"><p class="mute" style="margin:0 0 12px">Hello, <b id="who" style="color:#fff"></b></p>
+<div class="card"><div class="chip" id="tdy">Today</div>
+<div class="ring" id="ring"><svg viewBox="0 0 220 220"><circle class="tr" cx="110" cy="110" r="100"/><circle class="ar" id="arc" cx="110" cy="110" r="100"/></svg>
+<div class="mid"><div id="ph" class="mute">Ready</div><div id="clk">25:00</div><div id="sub" class="mute"></div></div></div><div id="nst" class="mute" style="text-align:center;font-size:12px;margin-top:6px"></div><div class="dots" id="dots"></div>
+<div class="modes" id="modes"><button data-m="15/3"><b>Sprint</b>15 / 3</button><button data-m="25/5" class="on"><b>Classic</b>25 / 5</button><button data-m="50/10"><b>Deep</b>50 / 10</button><button data-m="custom" id="cbtn"><b>Custom</b>your own</button></div>
+<div class="row hide" id="crow" style="margin:10px 0 0;justify-content:center"><label class="mute">Focus <input id="cf1" type="number" min="1" max="180" value="40" style="width:80px" aria-label="Focus minutes"> min</label><label class="mute">Break <input id="cb1" type="number" min="1" max="60" value="8" style="width:80px" aria-label="Break minutes"> min</label></div>
+<div class="row" style="margin:14px 0"><input id="subj" list="sl" placeholder="No label" maxlength="24" style="flex:1;min-width:130px"><datalist id="sl"></datalist><input id="cyc" type="number" min="1" max="12" value="4" style="width:90px" aria-label="Cycles"></div>
+<div class="row" style="justify-content:center"><button class="btn" id="go">Start</button></div>
+<div class="row" style="justify-content:center;margin-top:10px"><button class="btn alt" id="skip">Skip</button><button class="btn alt hide" id="fin">Finish</button><button class="btn alt" id="rst">Reset</button></div></div>
+<div class="two" id="cards"></div><div class="card" id="wk"></div><div class="card" id="recent"></div></section>
+<section id="k" class="hide"><h2 class="ttl">Tasks</h2><p class="mute" style="margin:0 0 14px">What today is for.</p>
+<div class="card"><h3>My Tasks</h3><div id="tl"></div><form id="tf" class="row" style="flex-wrap:nowrap;margin-top:10px"><input id="tt" placeholder="Add a task" maxlength="120"><button class="btn">Add</button></form></div></section>
+<section id="r" class="hide"><h2 class="ttl">Friends</h2><p class="mute" id="rn" style="margin:0 0 14px">Pick a room to study together.</p>
+<div id="pick" class="card hide"></div><div id="rooms"></div>
+</section>
+<section id="l" class="hide"><div class="row" style="justify-content:space-between"><h2 class="ttl">Leaderboard</h2><span class="mute" id="lc"></span></div>
+<div class="modes" id="lm"><button data-l="today" class="on">Today</button><button data-l="all">All time</button></div><div id="lb"></div></section>
+<section id="a" class="hide"><h2 class="ttl">Admin</h2><p class="mute" style="margin:0 0 14px">Edit anyone’s study analytics.</p><div class="card" id="adu"></div><div id="adv"></div></section>
+<section id="s" class="hide"><h2 class="ttl">Your focus journey.</h2><div id="you" style="margin-top:12px"></div><button class="btn alt" id="out" style="width:100%">Sign out</button></section>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getDatabase,ref,set,update,get,push,onValue,onChildAdded,remove,onDisconnect,increment,query,limitToLast,runTransaction} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import {getAnalytics} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+
+const app=initializeApp({apiKey:"AIzaSyAfm1SkQSqwpf-82kWrsTgoiXgk2DMOSpU",authDomain:"retrocallapp.firebaseapp.com",databaseURL:"https://retrocallapp-default-rtdb.firebaseio.com",projectId:"retrocallapp",storageBucket:"retrocallapp.firebasestorage.app",messagingSenderId:"364436629934",appId:"1:364436629934:web:080df2aa03fad1f6fcc03f",measurementId:"G-NJEQGNFND2"});
+try{getAnalytics(app)}catch(e){}
+const db=getDatabase(app);
+
+const $=s=>document.querySelector(s),pad=n=>String(n).padStart(2,'0');
+const fmt=s=>{s=Math.max(0,Math.round(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}h ${pad(m)}m`:`${m}m`};
+const clock=s=>{s=Math.max(0,Math.ceil(s));return pad(Math.floor(s/60))+':'+pad(s%60)};
+const dk=(d=new Date())=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const skey=s=>((s||'General').replace(/[.#$\[\]\/]/g,'-').trim().slice(0,24))||'General';
+const PRESET={'15/3':[15,3],'25/5':[25,5],'50/10':[50,10]};
+const MODES=new Proxy(PRESET,{get(t,k){if(k in t)return t[k];if(typeof k==='string'){const m=/^(\d{1,3})\/(\d{1,2})$/.exec(k);if(m&&+m[1]>0)return[+m[1],+m[2]]}return t[k]||PRESET['25/5']}});
+
+let me=null,stats={},room=null,members={},unsubs=[];
+const ROOMS=[{id:'lounge',name:'Study Lounge',d:'First one in picks the Pomodoro for everyone.',m:1},{id:'library',name:'Quiet Library',d:'First one in picks the Pomodoro for everyone.',m:1},{id:'open',name:'Open Study',d:'Just study together. Everyone runs their own timer.',m:0}];
+let lockMode=false,info={},roomOffs=[],pickFor=null,svOff=0,rt=null,adv=0,sp=null,allUsers={},adSel=null,adOff=null;
+const T={mode:'25/5',cycles:4,subject:'',phase:'idle',cycle:1,running:false,end:0,left:1500,focusBase:0,focusSince:0,lastLog:0};
+let gotStats=false,gotSince=0,gotTry=0,updOff=null,updShown=false,updSnooze=0,updCur=null,FW={},seenN={},sumSecs=null,sumEarly=false,lastNudge={},stOn=false,stBlocked=false; /* declared early: enter() runs at load */
+const dur=()=>MODES[T.mode][T.phase==='break'?1:0]*60;
+
+/* ---------- accounts stored in Realtime Database (salted PBKDF2 hash, never the plain password) ---------- */
+const enc=new TextEncoder(),uname=u=>u.trim().toLowerCase(),aerr=m=>$('#ae').textContent=m;
+async function hash(u,p){
+ const k=await crypto.subtle.importKey('raw',enc.encode(p),'PBKDF2',false,['deriveBits']);
+ const b=await crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode('studytogether:'+u),iterations:150000,hash:'SHA-256'},k,256);
+ return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+let statsOff=null;
+function enter(u){
+ gotStats=false;gotSince=0;gotTry=0;me={uid:u,name:u};try{localStorage.setItem('st_user',u)}catch(e){}
+ $('#auth').classList.add('hide');$('#app').classList.remove('hide');$('#who').textContent=u;startRoomInfo();adminInit();
+ statsOff=onValue(ref(db,`users/${u}`),s=>{gotStats=true;stats=s.val()||{};drawStats();drawSubjects();if(sumSecs!=null)renderSum()});
+}
+/* re-subscribe everything without reloading the page (the iPhone app can come back blank after a full reload) */
+function softRefresh(){
+ if(!me)return;const u=me.uid;
+ try{flush()}catch(e){}
+ if(statsOff){try{statsOff()}catch(e){}statsOff=null}
+ roomOffs.forEach(f=>{try{f()}catch(e){}});roomOffs=[];if(adOff){try{adOff()}catch(e){}adOff=null}
+ const keep=gotTry;enter(u);gotTry=keep;
+}
+function check(){const u=uname($('#u').value),p=$('#p').value;aerr('');
+ if(!/^[a-z0-9_]{2,16}$/.test(u)){aerr('Username: 2–16 letters, numbers or _.');return null}
+ if(p.length<6){aerr('Use at least 6 characters.');return null}
+ return [u,p]}
+$('#af').onsubmit=async e=>{e.preventDefault();const c=check();if(!c)return;
+ try{const h=await hash(c[0],c[1]);const s=await get(ref(db,`creds/${c[0]}/${h}`));s.exists()?enter(c[0]):aerr('Wrong username or password.')}catch(x){aerr(x.message)}};
+$('#su').onclick=async()=>{const c=check();if(!c)return;
+ try{const h=await hash(c[0],c[1]);
+  try{await set(ref(db,`creds/${c[0]}/${h}`),true)}catch(x){return aerr('That username is taken.')}
+  await set(ref(db,`users/${c[0]}/name`),c[0]);enter(c[0])}catch(x){aerr(x.message)}};
+$('#out').onclick=async()=>{await leave();if(statsOff){statsOff();statsOff=null}try{localStorage.removeItem('st_user')}catch(e){}
+ roomOffs.forEach(f=>f());roomOffs=[];if(adOff){adOff();adOff=null}$('#adtab').classList.add('hide');adSel=null;document.querySelector('nav button').click();me=null;stats={};$('#p').value='';$('#app').classList.add('hide');$('#auth').classList.remove('hide')};
+/* run after the whole script has been evaluated, so nothing below can still be uninitialised when enter() runs */
+try{const u=localStorage.getItem('st_user');if(u)setTimeout(()=>{try{enter(u)}catch(e){console.error(e)}},0)}catch(e){}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+ ['t','k','r','l','s','a'].forEach(id=>$('#'+id).classList.toggle('hide',id!==b.dataset.t))});
+
+/* ---------- alarm sounds + background audio ---------- */
+const RATE=22050,AUD=document.createElement('audio');AUD.setAttribute('playsinline','');AUD.preload='auto';document.body.appendChild(AUD);
+const ALARMS={
+ bell:{n:'Bell',len:5,p:[[880,0,3.5,.5,2.5,'b'],[880,1.6,3.5,.5,2.5,'b']]},
+ chime:{n:'Chime',len:3.8,p:[[523,0,1.5,.4,3,'b'],[659,.25,1.5,.4,3,'b'],[784,.5,2,.4,3,'b'],[1047,.8,2.8,.4,2.5,'b']]},
+ beep:{n:'Beep',len:2.4,p:[0,.5,1,1.5].map(t=>[1000,t,.3,.5,0,'q'])},
+ digital:{n:'Digital',len:2.2,p:[0,1,2,3,4,5,6,7].map(i=>[i%2?1500:1200,i*.25,.14,.5,0,'q'])},
+ gentle:{n:'Gentle',len:4.5,p:[[440,0,3,.4,1.2,'s'],[554,.5,3,.4,1.2,'s'],[659,1,3.4,.4,1,'s']]}
+};
+let alarmId='bell';try{const a=localStorage.getItem('st_alarm');if(a&&ALARMS[a])alarmId=a}catch(e){}
+function wav(f){const n=f.length,b=new ArrayBuffer(44+n*2),v=new DataView(b),w=(o,t)=>[...t].forEach((c,i)=>v.setUint8(o+i,c.charCodeAt(0)));
+ w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,RATE,true);v.setUint32(28,RATE*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+ for(let i=0;i<n;i++)v.setInt16(44+i*2,Math.max(-1,Math.min(1,f[i]))*32767,true);
+ return URL.createObjectURL(new Blob([b],{type:'audio/wav'}))}
+function synth(parts,len){const f=new Float32Array(Math.round(len*RATE));
+ for(const [fr,st,du,vo,de,ty] of parts){const s0=Math.round(st*RATE),n=Math.round(du*RATE);
+  for(let i=0;i<n&&s0+i<f.length;i++){const t=i/RATE,w=2*Math.PI*fr*t;
+   const x=ty==='q'?Math.sign(Math.sin(w))*.5:Math.sin(w)+(ty==='b'?.5*Math.sin(w*2.4)+.25*Math.sin(w*5.4):0);
+   f[s0+i]+=x*vo*Math.min(1,i/200,(n-i)/400)*Math.exp(-de*t)}}
+ return f}
+const urls={};
+const alarmURL=id=>urls[id]||(urls[id]=wav(synth(ALARMS[id].p,ALARMS[id].len)));
+const silentURL=()=>urls._s||(urls._s=wav(Float32Array.from({length:RATE},(_,i)=>(i%2?1:-1)*.002)));
+function keepAlive(on){
+ if(on){if(AUD.dataset.m==='s'&&!AUD.paused)return;AUD.dataset.m='s';AUD.loop=true;AUD.src=silentURL();AUD.play().catch(()=>{});
+  try{navigator.mediaSession.metadata=new MediaMetadata({title:'Study Together',artist:'Focus session running'})}catch(e){}}
+ else if(AUD.dataset.m!=='a'){AUD.pause();AUD.dataset.m=''}
+}
+function ringAlarm(id=alarmId){AUD.dataset.m='a';AUD.loop=false;AUD.src=alarmURL(id);AUD.play().catch(()=>{});buzz()}
+AUD.onended=()=>{if(AUD.dataset.m==='a'){AUD.dataset.m='';T.running?keepAlive(true):keepAlive(false)}};
+function syncAudio(){const m=AUD.dataset.m,w=T.running||lockMode||T.phase==='focus'||T.phase==='break';if(w&&m!=='s'&&m!=='a')keepAlive(true);else if(!w&&m==='s')keepAlive(false)}
+
+/* ---------- timer ---------- */
+function flush(t=Date.now()){
+ if(T.phase!=='focus'||!T.running||!T.lastLog||!me)return;
+ const d=Math.floor((t-T.lastLog)/1000);if(d<1)return;T.lastLog+=d*1000;
+ const day=dk();
+ update(ref(db),{[`users/${me.uid}/total`]:increment(d),[`users/${me.uid}/days/${day}/total`]:increment(d),[`users/${me.uid}/days/${day}/s/${skey(T.subject)}`]:increment(d)});
+}
+function publish(){
+ if(!room||!me)return;
+ set(ref(db,`rooms/${room}/members/${me.uid}`),{name:me.name,mode:(T.mode in PRESET)?T.mode:'25/5',phase:T.spect?'idle':T.phase,cycle:T.cycle,cycles:T.cycles,subject:T.subject||'',running:!T.spect&&T.running,end:!T.spect&&T.running?T.end:0,left:T.spect?0:T.running?0:Math.round(T.left),focusBase:T.focusBase,focusSince:T.focusSince,today:(stats.days&&stats.days[dk()]&&stats.days[dk()].total)||0,all:stats.total||0,streak:streak(),t:Date.now()});
+}
+let kitOn=false;
+function beep(){ringAlarm()}
+
+/* ---------- native iOS: haptics, alarm notifications, Live Activity ---------- */
+const CAP=window.Capacitor,isNative=!!(CAP&&CAP.isNativePlatform&&CAP.isNativePlatform());
+const NP=n=>{try{return(CAP.Plugins&&CAP.Plugins[n])||CAP.registerPlugin(n)}catch(e){}};
+const HP=isNative?NP('Haptics'):null,LN=isNative?NP('LocalNotifications'):null,LA=isNative?NP('LiveActivity'):null;
+function hap(style){try{HP&&HP.impact({style:style||'LIGHT'})}catch(e){}}
+function buzz(){
+ if(HP){let n=0;const go=()=>{try{HP.vibrate({duration:500})}catch(e){}if(++n<5)setTimeout(go,700)};go();try{HP.notification({type:'SUCCESS'})}catch(e){}}
+ else try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}
+}
+if(isNative){
+ document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('button'))hap('LIGHT')},true);
+ ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
+ setTimeout(async()=>{try{const p=await LN.checkPermissions();if(p.display!=='granted')await LN.requestPermissions()}catch(e){}},1200);
+}
+function phaseChain(){
+ const out=[];if(!T.running)return out;
+ let ph=T.phase,cyc=T.cycle,at=T.end;const m=MODES[T.mode];
+ for(let i=0;i<24;i++){
+  if(ph==='focus'){
+   if(cyc>=T.cycles){out.push({at,title:'Session complete',body:T.cycles+' rounds done. Great work!'});break}
+   out.push({at,title:'Break time',body:'Round '+cyc+'/'+T.cycles+' done. Rest '+m[1]+' min.'});ph='break';at+=m[1]*60000;
+  }else if(ph==='break'){
+   out.push({at,title:'Back to focus',body:'Round '+(cyc+1)+'/'+T.cycles+' starts now.'});ph='focus';cyc++;at+=m[0]*60000;
+  }else break;
+ }
+ return out;
+}
+if(isNative&&LA){try{LA.addListener('liveAction',e=>{const a=e&&e.action;if(T.spect)return;if(a==='toggle')$('#go').click();else if(a==='skip')$('#skip').click()})}catch(e){}}
+let nsig='',sched=[];
+async function nativeSync(){
+ if(!isNative)return;
+ if(sched.some(t=>Math.abs(t-Date.now())<6000)){nsig='';return}
+ const sig=[T.spect,T.running,T.phase,T.end,T.cycle,T.cycles,T.mode,T.running?0:Math.round(T.left)].join('|');
+ if(sig===nsig)return;nsig=sig;
+ try{
+  const now=Date.now();
+  const items=T.running&&!T.spect?phaseChain().filter(c=>c.at>now+1500):[];
+  sched=items.map(c=>c.at);
+  let kit=false;
+  if(LA){try{const r=await LA.setAlarms({alarms:items.map(c=>({endMs:c.at,title:c.title}))});kit=!!(r&&r.scheduled)}catch(e){}}
+  kitOn=kit&&T.running&&!T.spect;
+  const nst=document.getElementById('nst');if(nst)nst.textContent=(T.running&&!T.spect)?(kit?'Alarm: system alarm (rings on silent)':'Alarm: notification + in-app sound'):'';
+  if(LN){
+   const p=await LN.getPending();
+   if(p.notifications&&p.notifications.filter(n=>n.id<1000).length)await LN.cancel({notifications:p.notifications.filter(n=>n.id<1000).map(n=>({id:n.id}))});
+   if(!kit&&items.length)await LN.schedule({notifications:items.map((c,i)=>({id:i+1,title:c.title,body:c.body,schedule:{at:new Date(c.at),allowWhileIdle:true},sound:'alarm.wav'}))});
+  }
+  if(LA){
+   if(T.spect||T.phase==='idle'||T.phase==='done')await LA.end();
+   else await LA.start({phase:T.phase==='break'?'Break':'Focus',endMs:T.running?T.end:Date.now()+T.left*1000,paused:!T.running,remaining:Math.round(T.left),cycleText:'Round '+T.cycle+' of '+T.cycles,subject:T.subject||''});
+  }
+ }catch(e){}
+}
+function begin(phase){T.phase=phase;T.left=dur();T.end=Date.now()+T.left*1000;T.running=true;
+ if(phase==='focus'){T.focusSince=T.lastLog=Date.now()}}
+function finish(){
+ const t=Math.min(Date.now(),T.end);
+ if(T.phase==='focus'){flush(t);T.focusBase+=t-T.focusSince;T.focusSince=0;T.lastLog=0;
+  if(T.cycle>=T.cycles){T.phase='done';T.running=false;T.left=0;logSession();showSummary(false,T.focusBase/1000)}else begin('break')}
+ else{T.cycle++;begin('focus')}
+ beep();publish();
+}
+function logSession(){if(!me||T.focusBase<60000)return;push(ref(db,`users/${me.uid}/sessions`),{t:Date.now(),s:Math.round(T.focusBase/1000),sub:T.subject||'',mode:T.mode,early:!!T.early,room:room||''})}
+$('#go').onclick=()=>{if(lockMode)return T.spect?joinFocus():sGo();if(!T.running)keepAlive(true);
+ if(T.running){flush();if(T.phase==='focus'){T.focusBase+=Date.now()-T.focusSince;T.focusSince=0;T.lastLog=0}T.left=(T.end-Date.now())/1000;T.running=false}
+ else{
+  if(T.phase==='idle'||T.phase==='done'){T.early=false;T.cycle=1;T.focusBase=0;T.cycles=Math.max(1,Math.min(12,+$('#cyc').value||4));T.subject=$('#subj').value.trim();begin('focus')}
+  else{T.end=Date.now()+T.left*1000;T.running=true;if(T.phase==='focus')T.focusSince=T.lastLog=Date.now()}
+ }
+ publish();drawTimer()};
+$('#skip').onclick=()=>{if(lockMode)return;if(T.phase==='idle'||T.phase==='done')return;if(!T.running){T.running=true;T.end=Date.now();if(T.phase==='focus')T.focusSince=T.lastLog=Date.now()}else T.end=Date.now();finish();drawTimer()};
+$('#rf').onclick=async()=>{
+ flush();
+ if(isNative){softRefresh();toast('Refreshed');return}
+ try{
+  if('serviceWorker' in navigator){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}
+  if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}
+ }catch(e){}
+ location.replace(location.pathname+'?r='+Date.now());
+};
+$('#fin').onclick=()=>{if(T.phase!=='focus'&&T.phase!=='break')return;
+ if(lockMode){if(T.spect)return;stopClock();T.early=true;logSession();const secs=T.focusBase/1000;T.focusBase=0;T.pdone=false;T.spect=true;applyShared(rt);showSummary(true,secs);return}
+ flush();
+ if(T.phase==='focus'&&T.focusSince){T.focusBase+=Date.now()-T.focusSince}
+ T.focusSince=0;T.lastLog=0;T.running=false;T.phase='done';T.early=true;T.left=0;logSession();
+ publish();drawTimer();showSummary(true,T.focusBase/1000)};
+$('#rst').onclick=()=>{if(lockMode)return T.spect?0:sReset();flush();T.running=false;T.phase='idle';T.cycle=1;T.focusBase=0;T.focusSince=0;T.lastLog=0;T.left=MODES[T.mode][0]*60;publish();drawTimer()};
+function applyCustom(){const f=Math.max(1,Math.min(180,Math.round(+$('#cf1').value)||40)),b=Math.max(1,Math.min(60,Math.round(+$('#cb1').value)||5));
+ $('#cf1').value=f;$('#cb1').value=b;T.mode=f+'/'+b;T.left=f*60;try{localStorage.setItem('st_custom',f+'/'+b)}catch(e){}drawTimer()}
+try{const c=localStorage.getItem('st_custom');if(c){const m=/^(\d+)\/(\d+)$/.exec(c);if(m){$('#cf1').value=m[1];$('#cb1').value=m[2]}}}catch(e){}
+$('#cf1').onchange=$('#cb1').onchange=()=>{if(!lockMode&&(T.phase==='idle'||T.phase==='done'))applyCustom()};
+$('#modes').onclick=e=>{const bt=e.target.closest('button'),m=bt&&bt.dataset.m;if(!m||lockMode||T.phase!=='idle'&&T.phase!=='done')return;if(m==='custom')return applyCustom();T.mode=m;T.left=MODES[m][0]*60;drawTimer()};
+$('#cyc').onchange=()=>{if(T.phase==='idle'||T.phase==='done'){T.cycles=Math.max(1,Math.min(12,+$('#cyc').value||4));drawTimer()}};
+function drawTimer(){
+ const idle=T.phase==='idle'||T.phase==='done';
+ const left=T.running?(T.end-Date.now())/1000:(idle?MODES[T.mode][0]*60:T.left);
+ $('#clk').textContent=clock(left);
+ const total=idle?MODES[T.mode][0]*60:dur();
+ $('#arc').style.strokeDashoffset=idle?0:628.32*(1-Math.max(0,Math.min(1,left/total)));
+ $('#ring').classList.toggle('brk',T.phase==='break');
+ $('#sub').textContent=idle?`${T.mode.replace('/',' / ')} · ${T.cycles} cycles`:`${T.subject||'No subject'} · cycle ${T.cycle} of ${T.cycles}`;
+ $('#ph').innerHTML=T.phase==='focus'?'<span class="f">Focus</span>':T.phase==='break'?'<span class="b">Break</span>':T.phase==='done'?(T.early?'Finished early':'All done'):'Ready';
+ if(T.phase==='done')$('#sub').textContent=`You studied ${fmt(T.focusBase/1000)}`;
+ if(T.spect&&lockMode&&!idle)$('#sub').textContent='Watching · your time is not counted until you tap Join focus';
+ $('#fin').classList.toggle('hide',idle||T.phase==='done'||(lockMode&&T.spect));
+ $('#go').textContent=T.spect&&lockMode?(idle?'Start focus':'Join focus'):T.running?'Pause':idle?'Start':'Resume';
+ document.querySelectorAll('#modes button').forEach(b=>{b.classList.toggle('on',b.dataset.m==='custom'?!(T.mode in PRESET):b.dataset.m===T.mode);b.disabled=!idle||lockMode});
+ $('#crow').classList.toggle('hide',T.mode in PRESET);$('#cf1').disabled=$('#cb1').disabled=!idle||lockMode;
+ $('#dots').innerHTML=Array.from({length:T.cycles},(_,i)=>`<i class="${i+1<T.cycle||(T.phase==='done'&&!T.early)?'d':''} ${i+1===T.cycle&&!idle?'c':''}"></i>`).join('');
+ const MN={'15/3':'Sprint','25/5':'Classic','50/10':'Deep'},RR=ROOMS.find(r=>r.id===room);
+ if(RR){$('#rhead').textContent=RR.name;$('#rmode').textContent=RR.m?`${MN[T.mode]||'Custom'} · ${T.mode.replace('/',' / ')} · one shared timer for everyone`:'Open study · pick your own timer'}
+ $('#rclk').textContent=$('#clk').textContent;$('#rph').innerHTML=$('#ph').innerHTML;$('#rsub').textContent=$('#sub').textContent;$('#rgo').textContent=$('#go').textContent;$('#rdots').innerHTML=$('#dots').innerHTML;$('#rarc').style.strokeDashoffset=$('#arc').style.strokeDashoffset;$('#rring').classList.toggle('brk',T.phase==='break');$('#rfin').classList.toggle('hide',idle||(lockMode&&T.spect));$('#rskip').classList.toggle('hide',lockMode);$('#rset').classList.toggle('hide',!(idle||lockMode));$('#rcyc').classList.toggle('hide',!idle&&!lockMode);$('#rmodes').classList.toggle('hide',lockMode);
+ document.querySelectorAll('#rmodes button').forEach(b=>{b.classList.toggle('on',b.dataset.m===T.mode);b.disabled=!idle||lockMode});
+ document.title=T.running?`${clock(left)} · Study Together`:'Study Together';
+}
+setInterval(()=>{
+ if(T.running){if(Date.now()>=T.end){lockMode?roomAdvance():finish()}else if(T.phase==='focus'&&!T.spect&&Date.now()-T.lastLog>=30000){flush();publish()}}
+ drawTimer();drawMembers();nativeSync();
+},500);
+
+/* ---------- shared room timer ---------- */
+const tref=()=>ref(db,`rooms/${room}/timer`),sNow=()=>Date.now()+svOff;
+function stopClock(){if(T.phase==='focus'&&T.running&&T.focusSince){const t=Math.min(Date.now(),T.end);flush(t);T.focusBase+=Math.max(0,t-T.focusSince)}T.focusSince=0;T.lastLog=0}
+function applyShared(g){
+ const op=T.phase;stopClock();
+ if(!g){T.spect=true;T.phase='idle';T.running=false;T.cycle=1;T.pdone=false;T.left=MODES[T.mode][0]*60;sp='idle';publish();drawTimer();return}
+ const fresh=g.phase==='focus'&&(sp===null||sp==='idle'||sp==='done');
+ if(!T.spect&&(fresh||T.myBase==null)){T.myBase=g.phase==='break'?g.cycle+1:g.cycle;if(fresh){T.focusBase=0;T.early=false}T.pdone=false}
+ const mine=T.spect?g.cycle:g.cycle-T.myBase+1;
+ const fin=!T.spect&&g.phase!=='idle'&&(g.phase==='done'||mine>T.cycles||(mine===T.cycles&&g.phase==='break'));
+ T.mode=g.mode;
+ if(fin){
+  const was=T.pdone;T.pdone=true;T.phase='done';T.running=false;T.end=0;T.left=0;T.cycle=Math.max(1,Math.min(mine,T.cycles));
+  if(!was){logSession();if(op==='focus'||op==='break'){beep();showSummary(false,T.focusBase/1000)}}
+ }else{
+  T.pdone=false;T.cycle=Math.max(1,mine);T.phase=g.phase;T.running=!!g.running;T.end=g.running?g.end-svOff:0;T.left=g.left||0;
+  if(!T.spect&&T.phase==='focus'&&T.running){T.focusSince=T.lastLog=Date.now()}
+  if(!T.spect&&op!==g.phase&&(op==='focus'||op==='break')&&g.phase!=='idle')beep();
+ }
+ sp=g.phase;if(g.phase==='idle'&&lockMode)T.spect=true;publish();drawTimer();
+}
+function joinFocus(){
+ T.spect=false;const g=rt||{};
+ if(g.phase==='focus'||g.phase==='break'){T.myBase=g.phase==='break'?g.cycle+1:g.cycle;T.focusBase=0;T.early=false;T.pdone=false;T.focusSince=T.lastLog=0;applyShared(rt)}
+ else{T.myBase=null;T.pdone=false;T.focusBase=0;T.early=false;sGo()}
+}
+function sGo(){
+ keepAlive(true);const g=rt||{},q=(g.seq||0)+1;
+ if(g.running)update(tref(),{running:false,left:Math.max(0,(g.end-sNow())/1000),seq:q});
+ else if(g.phase==='focus'||g.phase==='break')update(tref(),{running:true,end:sNow()+(g.left||0)*1000,seq:q});
+ else set(tref(),{mode:T.mode,phase:'focus',cycle:1,cycles:99,running:true,end:sNow()+MODES[T.mode][0]*60000,left:0,seq:q});
+}
+function sReset(){set(tref(),{mode:T.mode,phase:'idle',cycle:1,cycles:(rt&&rt.cycles)||4,running:false,end:0,left:0,seq:((rt&&rt.seq)||0)+1})}
+function roomAdvance(){
+ if(Date.now()-adv<3000)return;adv=Date.now();
+ runTransaction(tref(),cur=>{
+  if(!cur||!cur.running||sNow()<cur.end-300)return;
+  const n={...cur,seq:(cur.seq||0)+1},[f,b]=MODES[cur.mode];
+  if(sNow()-cur.end>15000)return {...cur,phase:'idle',cycle:1,running:false,end:0,left:0,seq:n.seq};
+  if(cur.phase==='focus'){n.phase='break';n.end=cur.end+b*60000}
+  else{n.phase='focus';n.cycle=cur.cycle+1;n.end=cur.end+f*60000}
+  return n}).catch(()=>{});
+}
+/* ---------- rooms ---------- */
+function startRoomInfo(){
+ FW={};
+ roomOffs.push(onValue(ref(db,'.info/serverTimeOffset'),x=>{svOff=x.val()||0}));
+ ROOMS.forEach(r=>{
+  roomOffs.push(onValue(ref(db,`rooms/${r.id}/members`),x=>{(info[r.id]=info[r.id]||{}).n=x.exists()?Object.keys(x.val()).length:0;drawRooms();friendWatch(r,x.val())}));
+  roomOffs.push(onValue(ref(db,`rooms/${r.id}/config`),x=>{(info[r.id]=info[r.id]||{}).mode=(x.val()||{}).mode;drawRooms()}));
+ });
+}
+function drawRooms(){
+ $('#rooms').innerHTML=ROOMS.map(r=>{const i=info[r.id]||{n:0},md=r.m?(i.n&&i.mode?i.mode.replace('/',' / '):'Pick when you join'):'Any timer',on=room===r.id;
+  return `<div class="card"><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><div><b>${r.name}</b><div class="mute">${r.d}</div><div class="mute">${i.n||0} studying · ${md}</div></div><div class="row" style="flex-wrap:nowrap">${on?`<button class="btn" data-o="1">Open</button><button class="btn alt" data-j="${r.id}">Leave</button>`:`<button class="btn" data-j="${r.id}">Join</button>`}</div></div></div>`}).join('');
+}
+$('#rooms').onclick=e=>{if(e.target.dataset.o){$('#room').classList.remove('hide');return}const j=e.target.dataset.j;if(!j)return;room===j?leave():joinRoom(j)};
+async function leave(){
+ unsubs.forEach(f=>f());unsubs=[];
+ if(lockMode){const mid=T.phase==='focus'||T.phase==='break';stopClock();if(mid){T.early=true;logSession()}T.phase='idle';T.running=false;T.focusBase=0;T.left=MODES[T.mode][0]*60;rt=null;T.myBase=null;T.pdone=false;sp=null}
+ if(room&&me){try{await remove(ref(db,`rooms/${room}/members/${me.uid}`))}catch(e){}}
+ $('#room').classList.add('hide');room=null;lockMode=false;T.spect=false;members={};$('#chat').innerHTML='';$('#rn').textContent='Pick a room to study together.';drawRooms();drawTimer();drawMembers();
+}
+async function joinRoom(c){try{await joinRoom0(c)}catch(e){alert('Could not join this room: '+e.message+'\n\nMake sure the latest database rules are published in Firebase.')}}
+async function joinRoom0(c){
+ const R=ROOMS.find(r=>r.id===c);if(!R||room===c)return;
+ if(R.m)keepAlive(true);
+ if(R.m&&T.phase!=='idle'&&T.phase!=='done')return alert('Finish or reset your timer first, then join this room.');
+ if(R.m){const m=await get(ref(db,`rooms/${c}/members`));if(!m.exists()){pickFor=c;
+  $('#pick').innerHTML=`<h3>You’re first in ${R.name}</h3><p style="margin:0 0 12px">Choose the Pomodoro for everyone who joins.</p><div class="modes"><button data-pm="15/3"><b>Sprint</b>15 / 3</button><button data-pm="25/5"><b>Classic</b>25 / 5</button><button data-pm="50/10"><b>Deep</b>50 / 10</button></div><button class="btn alt" data-x="1" style="margin-top:10px">Cancel</button>`;
+  $('#pick').classList.remove('hide');$('#pick').scrollIntoView({behavior:'smooth',block:'center'});return}}
+ enterRoom(c);
+}
+$('#pick').onclick=async e=>{const m=e.target.closest('button'),pm=m&&m.dataset.pm;
+ if(pm){try{await set(ref(db,`rooms/${pickFor}/config`),{mode:pm,by:me.name,t:Date.now()});await set(ref(db,`rooms/${pickFor}/timer`),{mode:pm,phase:'idle',cycle:1,cycles:4,running:false,end:0,left:0,seq:Date.now()});$('#pick').classList.add('hide');enterRoom(pickFor)}catch(x){alert('Could not save the room mode: '+x.message+'\n\nPublish the latest database rules (the rooms → config part), then try again.')}}
+ else if(m&&m.dataset.x)$('#pick').classList.add('hide')};
+async function enterRoom(c){
+ await leave();room=c;const R=ROOMS.find(r=>r.id===c);lockMode=!!R.m;T.spect=!!R.m;
+ onDisconnect(ref(db,`rooms/${c}/members/${me.uid}`)).remove();publish();
+ if(R.m)unsubs.push(onValue(ref(db,`rooms/${c}/config`),x=>{const g=x.val();
+  if(g&&g.mode&&T.mode!==g.mode&&(T.phase==='idle'||T.phase==='done')){T.mode=g.mode;T.left=MODES[g.mode][0]*60;publish()}drawTimer()}));
+ if(R.m)unsubs.push(onValue(ref(db,`rooms/${c}/timer`),x=>{rt=x.val();applyShared(rt)}));
+ unsubs.push(onValue(ref(db,`rooms/${c}/members`),x=>{members=x.val()||{};drawMembers()}));
+ unsubs.push(onChildAdded(query(ref(db,`rooms/${c}/chat`),limitToLast(50)),x=>{const m=x.val(),p=document.createElement('p');p.innerHTML=`<b>${esc(m.name)}</b> ${esc(m.text)}`;const box=$('#chat');box.appendChild(p);box.scrollTop=box.scrollHeight}));
+ const joinedAt=Date.now();unsubs.push(onChildAdded(query(ref(db,`rooms/${c}/nudges`),limitToLast(20)),x=>{const n=x.val();if(!n||!me||n.to!==me.uid||n.from===me.uid||seenN[x.key]||(n.t||0)<joinedAt-5000)return;seenN[x.key]=1;
+  const msg=n.kind==='clap'?'👏 '+n.name+' is cheering you on':'💪 '+n.name+' says keep going!';toast(msg);notify(n.kind==='clap'?'👏 Cheer from '+n.name:'💪 Keep going!',msg)},()=>{}));
+ $('#rn').textContent=R.name;$('#rsubj').value=$('#subj').value;T.subject=$('#rsubj').value.trim();$('#rcyc').value=$('#cyc').value;T.cycles=Math.max(1,Math.min(12,+$('#rcyc').value||4));T.myBase=null;sp=null;T.pdone=false;$('#room').classList.remove('hide');drawRooms();drawTimer();
+}
+$('#cf').onsubmit=e=>{e.preventDefault();const t=$('#ct').value.trim();if(!t||!room)return;push(ref(db,`rooms/${room}/chat`),{uid:me.uid,name:me.name,text:t,t:Date.now()});$('#ct').value=''};
+let lbMode='today';
+$('#lm').onclick=e=>{const l=e.target.dataset.l;if(!l)return;lbMode=l;document.querySelectorAll('#lm button').forEach(b=>b.classList.toggle('on',b.dataset.l===l));drawMembers()};
+function drawMembers(){
+ const now=Date.now(),list=Object.entries(members).map(([id,m])=>{
+  const idle=m.phase==='idle'||m.phase==='done';
+  return {id,m,idle,rem:m.running?(m.end-now)/1000:(idle?MODES[m.mode][0]*60:m.left),work:(m.focusBase+(m.focusSince?now-m.focusSince:0))/1000}});
+ $('#mem').innerHTML=list.map(({id,m,rem,work,idle})=>`<div class="card mem ${m.phase}"><div class="row" style="flex-wrap:nowrap"><div class="av">${esc(m.name[0]||'?').toUpperCase()}</div><div><b>${esc(m.name)}${me&&id===me.uid?' (you)':''}</b><span class="mute">${m.subject?'Studying '+esc(m.subject):'No label set'}</span></div></div>
+ <div class="t ${m.phase==='focus'?'f':m.phase==='break'?'b':''}">${clock(rem)}</div>
+ <div>${m.phase==='focus'?'Focusing':m.phase==='break'?'On break':m.phase==='done'?'Finished':'Idle'}${!m.running&&!idle?' (paused)':''}</div>
+ <div class="mute">Working ${fmt(work)} · cycle ${m.cycle} of ${m.cycles}</div>
+ <div class="mute">Today ${fmt(m.today)} · all time ${fmt(m.all)} · ${m.streak||0}-day streak</div>${me&&id!==me.uid&&m.phase==='focus'?`<div class="nud"><button class="btn alt" data-n="clap" data-to="${esc(id)}">👏 Clap</button><button class="btn alt" data-n="keep" data-to="${esc(id)}">💪 Keep going</button></div>`:''}</div>`).join('');
+ const k=lbMode==='all'?'all':'today',lb=list.slice().sort((a,b)=>b.m[k]-a.m[k]),v=x=>fmt(x.m[k]);
+ $('#rcount').textContent=`${list.filter(x=>!x.idle).length} focusing · ${list.length} in room`;$('#lc').textContent=room?`${lb.length} in room`:'';
+ if(!lb.length){$('#lb').innerHTML='<p class="mute" style="text-align:center;margin-top:40px">Join a room in Friends to see the leaderboard.</p>';return}
+ const hs=[130,96,72];
+ $('#lb').innerHTML=`<div class="pod">${[1,0,2].filter(i=>lb[i]).map(i=>`<div><div class="av">${esc(lb[i].m.name[0]||'?').toUpperCase()}</div><b>${esc(lb[i].m.name)}</b><div class="mute">${v(lb[i])}</div><div class="blk" style="height:${hs[i]}px">${i+1}</div></div>`).join('')}</div>
+ <div class="card" style="padding:4px 16px">${lb.slice(3).map((x,i)=>`<div class="lrow"><span>${i+4}</span><div class="av" style="width:36px;height:36px">${esc(x.m.name[0]||'?').toUpperCase()}</div><b>${esc(x.m.name)}</b><span>${v(x)}</span></div>`).join('')||'<p class="mute">Invite more friends to fill the board.</p>'}</div>`;
+}
+
+/* ---------- analytics ---------- */
+function dayTotal(d){return(stats.days&&stats.days[d]&&stats.days[d].total)||0}
+function streak(){let n=0,d=new Date();if(!dayTotal(dk(d)))d.setDate(d.getDate()-1);while(dayTotal(dk(d))>0){n++;d.setDate(d.getDate()-1)}return n}
+function drawSubjects(){$('#sl').innerHTML=Object.keys(Object.values(stats.days||{}).reduce((a,d)=>Object.assign(a,d.s||{}),{})).map(s=>`<option value="${esc(s)}">`).join('')}
+$('#tf').onsubmit=e=>{e.preventDefault();const v=$('#tt').value.trim();if(!v||!me)return;push(ref(db,`users/${me.uid}/tasks`),{text:v,done:false,t:Date.now()});$('#tt').value=''};
+$('#tl').onclick=e=>{const r=e.target.closest('.tk'),a=e.target.dataset.a;if(!r||!a)return;const id=r.dataset.id;a==='t'?update(ref(db,`users/${me.uid}/tasks/${id}`),{done:!stats.tasks[id].done}):remove(ref(db,`users/${me.uid}/tasks/${id}`))};
+$('#you').onclick=e=>{const k=e.target.dataset.al;if(!k)return;alarmId=k;try{localStorage.setItem('st_alarm',k)}catch(x){}if(me)set(ref(db,`users/${me.uid}/alarm`),k);ringAlarm(k);drawStats()};
+function drawTasks(){const t=Object.entries(stats.tasks||{}).sort((a,b)=>a[1].t-b[1].t);
+ $('#tl').innerHTML=t.length?t.map(([id,x])=>`<div class="tk" data-id="${id}"><i class="${x.done?'on':''}" data-a="t"></i><span class="${x.done?'dn':''}">${esc(x.text)}</span><u data-a="d">&times;</u></div>`).join(''):'<p class="mute">Nothing yet. Write the first thing you want off your mind.</p>'}
+function drawStats(){
+ if(stats.alarm&&ALARMS[stats.alarm])alarmId=stats.alarm;
+ const days=stats.days||{},all=Object.keys(days),today=dayTotal(dk()),goal=7200;
+ const last=n=>Array.from({length:n},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(n-1-i));return {d,v:dayTotal(dk(d))}});
+ const w=last(7),mx=Math.max(1,...w.map(x=>x.v)),week=w.reduce((a,x)=>a+x.v,0),m30=last(30).reduce((a,x)=>a+x.v,0);
+ const ses=Object.values(stats.sessions||{}).sort((a,b)=>b.t-a.t),st=streak(),g=Math.min(1,today/goal);
+ let bs=0,c=0,pv=null;all.filter(k=>days[k].total>0).sort().forEach(k=>{const t=new Date(k+'T00:00').getTime();c=pv!==null&&Math.round((t-pv)/864e5)===1?c+1:1;pv=t;bs=Math.max(bs,c)});
+ const subj={};all.forEach(k=>Object.entries(days[k].s||{}).forEach(([s,v])=>subj[s]=(subj[s]||0)+v));
+ const sl=Object.entries(subj).sort((a,b)=>b[1]-a[1]),sm=sl.length?sl[0][1]:1;
+ const when=t=>{const d=new Date(t);return(dk(d)===dk()?'Today':d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}))+' · '+d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})};
+ $('#stk').textContent=st;$('#tdy').textContent=`Today · ${fmt(today)} done`;
+ $('#cards').innerHTML=`<div class="card"><h3>Today</h3><b>${fmt(today)}</b><div class="mute">${Math.round(g*100)}% of ${fmt(goal)} goal</div><div class="bar"><i style="width:${g*100}%"></i></div></div><div class="card"><h3>This week</h3><b>${fmt(week)}</b><div class="mute">${Math.round(m30/30/60)}m daily avg</div></div>`;
+ $('#wk').innerHTML=`<div class="row" style="justify-content:space-between"><h3 style="margin:0">Last 7 days</h3><b>${fmt(week)}</b></div><div class="wk">${w.map((x,i)=>`<div class="${i===6?'t':''}"><span style="height:${x.v?Math.max(6,x.v/mx*100):0}%"></span>${x.d.toLocaleDateString(undefined,{weekday:'narrow'})}</div>`).join('')}</div>`;
+ $('#recent').innerHTML=`<h3>Recent sessions</h3><div class="ses">${ses.slice(0,5).map(x=>`<div><i></i><span><b>${esc(x.sub||'No label')}</b><span class="mute">${when(x.t)} · ${x.early?'finished early':'completed'}${x.room?' · Room':''}</span></span><em>${fmt(x.s)}</em></div>`).join('')||'<p class="mute">Finish a session to see it here.</p>'}</div>`;
+ $('#you').innerHTML=`<div class="card"><div class="row" style="flex-wrap:nowrap"><div class="av big">${esc(me?me.name[0]:'?').toUpperCase()}</div><div><b style="font-size:22px">${esc(me?me.name:'')}</b><div class="mute">${fmt(stats.total||0)} studied in total</div></div></div></div>
+ <div class="card tri"><div><b>${Math.floor((stats.total||0)/3600)}<small>h</small></b>Studied</div><div><b>${bs}<small>days</small></b>Best streak</div><div><b>${ses.length}</b>Sessions</div></div>
+ <div class="card"><h3>Alarm sound</h3><div class="row">${Object.entries(ALARMS).map(([k,a])=>`<button class="btn ${k===alarmId?'':'alt'}" data-al="${k}">${a.n}</button>`).join('')}</div><p class="mute" style="margin:10px 0 0">Tap a sound to hear it. On iPhone, leave the app open in the background (don’t swipe it away) while a session runs.</p></div>
+ <div class="card"><h3>Alerts</h3><label class="row" style="flex-wrap:nowrap;gap:10px"><input type="checkbox" data-tg="friend" ${friendOn()?'checked':''}> <span>Tell me when a friend starts studying</span></label><p class="mute" style="margin:8px 0 0">Shows the friend’s name. Works while the app is open or in the background; see the setup notes for alerts while the app is fully closed.</p></div>
+ <div class="card"><h3>Block distractions</h3>${isNative?`<label class="row" style="flex-wrap:nowrap;gap:10px"><input type="checkbox" data-tg="block" ${stOn?'checked':''}> <span>Block YouTube &amp; chosen apps while the timer is running</span></label><div class="row" style="margin-top:10px"><button class="btn alt" data-tg="stauth">Allow Screen Time</button><button class="btn alt" data-tg="stpick">Choose apps &amp; sites</button></div><p class="mute" id="stst" style="margin:8px 0 0"></p>`:`<p class="mute" style="margin:0">Available in the iPhone app. Blocking uses iOS Screen Time, so it can’t work in a browser.</p>`}</div>
+ <div class="kpi"><div class="card"><b>${st} days</b><span class="mute">Current streak</span></div><div class="card"><b>${fmt(Math.max(0,...all.map(dayTotal)))}</b><span class="mute">Best day</span></div><div class="card"><b>${fmt(m30/30)}</b><span class="mute">Daily avg (30d)</span></div></div>
+ <div class="card"><h3>By subject</h3>${sl.length?sl.map(([s,v])=>`<div class="sb">${esc(s)} <span class="mute">${fmt(v)}</span><i style="width:${v/sm*100}%"></i></div>`).join(''):'<span class="mute">Finish a focus session to see subjects here.</span>'}</div>`;
+ drawTasks();
+}
+$('#rgo').onclick=()=>$('#go').click();$('#rskip').onclick=()=>$('#skip').click();$('#rfin').onclick=()=>$('#fin').click();$('#rrst').onclick=()=>$('#rst').click();
+$('#rmodes').onclick=e=>{const b=e.target.closest('button');if(b&&b.dataset.m&&!b.disabled)document.querySelector(`#modes button[data-m="${b.dataset.m}"]`).click()};
+$('#rsubj').oninput=()=>{$('#subj').value=$('#rsubj').value;T.subject=$('#rsubj').value.trim()};$('#rsubj').onchange=publish;
+$('#rcyc').onchange=()=>{const v=Math.max(1,Math.min(12,+$('#rcyc').value||4));$('#rcyc').value=v;$('#cyc').value=v;if(lockMode){T.cycles=v;if(rt)applyShared(rt);publish()}else $('#cyc').dispatchEvent(new Event('change'))};
+$('#rmin').onclick=()=>$('#room').classList.add('hide');$('#rleave').onclick=leave;
+/* ---------- admin (zezo) ---------- */
+function adminInit(){if(!me||me.uid!=='zezo')return;$('#adtab').classList.remove('hide');adOff=onValue(ref(db,'users'),x=>{allUsers=x.val()||{};drawAdmin()})}
+function drawAdmin(){
+ const us=Object.entries(allUsers).filter(([,u])=>u&&(u.name||u.days||u.total));
+ $('#adu').innerHTML='<h3>Users</h3><div class="row">'+us.map(([id,u])=>`<button class="btn ${id===adSel?'':'alt'}" data-u="${id}">${esc(u.name||id)} · ${fmt(u.total||0)}</button>`).join('')+'</div>';
+ if(document.activeElement&&$('#adv').contains(document.activeElement))return;
+ const u=allUsers[adSel];if(!u){$('#adv').innerHTML='';return}
+ const ds=Object.entries(u.days||{}).sort((a,b)=>b[0].localeCompare(a[0]));
+ $('#adv').innerHTML=`<div class="card"><h3>${esc(adSel)} · total ${fmt(u.total||0)}</h3>
+ ${ds.map(([d,x])=>`<div class="row" style="margin-bottom:8px" data-d="${d}"><span style="width:96px">${d}</span><input type="number" min="0" value="${Math.round((x.total||0)/60)}" style="width:90px"><span class="mute">min</span><button class="btn alt" data-a="sv">Save</button><button class="btn alt" data-a="del">Delete</button></div>`).join('')||'<p class="mute">No days yet.</p>'}
+ <h3 style="margin-top:14px">Add or set a day</h3><div class="row"><input type="date" id="adD" value="${dk()}" style="width:160px"><input type="number" id="adM" min="0" placeholder="minutes" style="width:110px"><button class="btn" data-a="add">Set</button></div>
+ <div class="row" style="margin-top:14px"><button class="btn alt" data-a="rs">Clear sessions</button><button class="btn alt" data-a="all">Reset all stats</button></div></div>`;
+}
+async function setDay(uid,d,min){
+ const u=allUsers[uid]||{},old=(u.days&&u.days[d])||{},tot=Math.round(min*60),oc=old.total||0;let sub=old.s||{};
+ if(!oc||!Object.keys(sub).length)sub=tot?{General:tot}:{};else{const f=tot/oc;sub=Object.fromEntries(Object.entries(sub).map(([k,v])=>[k,Math.round(v*f)]))}
+ const days={...(u.days||{})};if(tot)days[d]={total:tot};else delete days[d];
+ const total=Object.values(days).reduce((a,x)=>a+x.total,0);
+ await update(ref(db),{[`users/${uid}/days/${d}`]:tot?{total:tot,s:sub}:null,[`users/${uid}/total`]:total});
+}
+$('#adu').onclick=e=>{const u=e.target.dataset.u;if(u){adSel=u;document.activeElement.blur();drawAdmin()}};
+$('#adv').onclick=async e=>{const a=e.target.dataset.a;if(!a||!adSel)return;const row=e.target.closest('[data-d]');
+ if(a==='sv')await setDay(adSel,row.dataset.d,+row.querySelector('input').value||0);
+ else if(a==='del'){if(confirm('Delete '+row.dataset.d+' for '+adSel+'?'))await setDay(adSel,row.dataset.d,0)}
+ else if(a==='add'){const d=$('#adD').value;if(d)await setDay(adSel,d,+$('#adM').value||0)}
+ else if(a==='rs'){if(confirm('Clear all sessions for '+adSel+'?'))await remove(ref(db,`users/${adSel}/sessions`))}
+ else if(a==='all'){if(confirm('Reset ALL stats for '+adSel+'?'))await update(ref(db),{[`users/${adSel}/days`]:null,[`users/${adSel}/total`]:null,[`users/${adSel}/sessions`]:null})}
+ document.activeElement.blur();drawAdmin()};
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+let wl=null;
+async function keepAwake(){try{if(T.running&&!wl&&navigator.wakeLock){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>wl=null)}else if(!T.running&&wl){wl.release();wl=null}}catch(e){}}
+setInterval(()=>{keepAwake();syncAudio()},2000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(T.running&&Date.now()>=T.end){lockMode?roomAdvance():finish()}else if(T.running&&T.phase==='focus'){flush();publish()}keepAwake();drawTimer()}});
+drawTimer();
+
+/* ---------- toasts, alerts, finish summary, nudges, screen-time blocking ---------- */
+function toast(t){const b=document.getElementById('toasts');if(!b)return;const d=document.createElement('div');d.textContent=t;b.appendChild(d);setTimeout(()=>d.remove(),4500)}
+function notify(title,body){
+ try{if(isNative&&LN){LN.schedule({notifications:[{id:900000+Math.floor(Math.random()*90000),title,body,schedule:{at:new Date(Date.now()+400)}}]});return}}catch(e){}
+ try{if(window.Notification&&Notification.permission==='granted'&&document.hidden)new Notification(title,{body,icon:'icon-192.png'})}catch(e){}
+}
+function friendOn(){try{return localStorage.getItem('st_friend')!=='0'}catch(e){return true}}
+function friendWatch(r,mem){
+ const prev=FW[r.id],cur={};
+ Object.entries(mem||{}).forEach(([id,m])=>{
+  cur[id]=(m.phase==='focus'&&m.running)?1:0;
+  if(prev&&me&&id!==me.uid&&cur[id]&&!prev[id]&&friendOn()&&Date.now()-(m.t||0)<20000){
+   const body=r.name+(m.subject?' · '+m.subject:'');
+   toast('📚 '+m.name+' started studying');notify(m.name+' started studying',body);
+  }
+ });
+ FW[r.id]=cur;
+}
+/* finish summary */
+function sumHTML(){
+ const mins=Math.round((sumSecs||0)/60),today=dayTotal(dk()),st=streak();
+ const days=[];const d=new Date();d.setDate(d.getDate()-6);
+ for(let i=0;i<7;i++){const k=dk(d);days.push(`<span><i class="${dayTotal(k)>0?'on':''} ${i===6?'now':''}"></i>${'SMTWTFS'[d.getDay()]}</span>`);d.setDate(d.getDate()+1)}
+ const line=(sumSecs||0)<60?'Under a minute, so this one wasn’t saved.':`+${mins} min today`;
+ return `<div class="box"><h2>${sumEarly?'Nice work, you showed up 💪':'Session complete 🎉'}</h2>
+ <div class="mute">${sumEarly?'Finished early — every minute counts':'All rounds done'}</div>
+ <div class="big">${(sumSecs||0)<60?'<1m':fmt(sumSecs)}</div><div class="mute">studied this session</div>
+ <div class="plus">${line}${today>=60?` · ${fmt(today)} total today`:''}</div>
+ <div style="font-size:18px;font-weight:700">${st>0?'🔥 '+st+'-day streak':'Start your streak today'}</div>
+ <div class="wk">${days.join('')}</div>
+ <div class="acts"><button class="btn" id="sumGo">Start another</button><button class="btn alt" id="sumX">Done</button></div></div>`;
+}
+function renderSum(){const el=document.getElementById('sum');if(el&&!el.classList.contains('hide'))el.innerHTML=sumHTML()}
+function showSummary(early,secs){sumSecs=Math.max(0,secs||0);sumEarly=early;const el=document.getElementById('sum');el.innerHTML=sumHTML();el.classList.remove('hide');try{hap&&hap('MEDIUM')}catch(e){}}
+function closeSum(){sumSecs=null;document.getElementById('sum').classList.add('hide')}
+document.getElementById('sum').addEventListener('click',e=>{
+ if(e.target.id==='sumGo'){closeSum();if(lockMode)joinFocus();else $('#go').click()}
+ else if(e.target.id==='sumX'||e.target===e.currentTarget)closeSum();
+});
+/* nudges */
+document.getElementById('mem').addEventListener('click',async e=>{
+ const b=e.target.closest('button[data-n]');if(!b||!me||!room)return;
+ const to=b.dataset.to,kind=b.dataset.n,k=to+kind;if(Date.now()-(lastNudge[k]||0)<10000)return toast('Easy! Wait a few seconds');
+ lastNudge[k]=Date.now();const nm=(members[to]&&members[to].name)||'your friend';
+ try{await push(ref(db,`rooms/${room}/nudges`),{from:me.uid,name:me.name,to,kind,t:Date.now()})}
+ catch(err){try{await push(ref(db,`rooms/${room}/chat`),{uid:me.uid,name:me.name,text:(kind==='clap'?'👏 clapped for ':'💪 cheered on ')+nm,t:Date.now()})}catch(x){return toast('Could not send')}}
+ toast(kind==='clap'?'👏 Sent to '+nm:'💪 Sent to '+nm);
+});
+/* settings toggles + Screen Time */
+const ST=isNative?NP('ScreenTime'):null;
+try{stOn=localStorage.getItem('st_block')==='1'}catch(e){}
+async function stStatus(){const el=document.getElementById('stst');if(!el||!ST)return;try{const r=await ST.getStatus();el.textContent=r.authorized?(r.apps+r.sites+r.categories>0?`Ready · ${r.apps} apps, ${r.sites} sites, ${r.categories} categories chosen`:'Allowed. Now tap “Choose apps & sites” and pick YouTube.'):'Screen Time access not allowed yet.'}catch(e){el.textContent='Screen Time plugin not installed in this build yet (see setup notes).'}}
+function stWant(){return !!(isNative&&ST&&stOn&&T.running&&T.phase==='focus'&&!T.spect)}
+async function stSync(){const w=stWant();if(w===stBlocked)return;stBlocked=w;try{if(w)await ST.startBlocking({endMs:T.end});else await ST.stopBlocking()}catch(e){}}
+setInterval(stSync,1000);
+setInterval(()=>{if(document.getElementById('stst')&&!document.getElementById('stst').textContent)stStatus()},1500);
+document.getElementById('you').addEventListener('change',async e=>{
+ const t=e.target.dataset&&e.target.dataset.tg;if(!t)return;
+ if(t==='friend'){try{localStorage.setItem('st_friend',e.target.checked?'1':'0')}catch(x){}
+  if(e.target.checked){try{if(isNative&&LN)await LN.requestPermissions();else if(window.Notification&&Notification.permission==='default')await Notification.requestPermission()}catch(x){}}}
+ if(t==='block'){
+  if(e.target.checked){
+   try{if(LN)await LN.requestPermissions()}catch(x){}
+   try{await ST.requestAuthorization();const r=await ST.getStatus();if(!(r.apps+r.sites+r.categories))await ST.pickApps();stOn=true}catch(x){stOn=false;e.target.checked=false;toast('Screen Time: '+((x&&x.message)||'not allowed'))}
+  }else stOn=false;
+  try{localStorage.setItem('st_block',stOn?'1':'0')}catch(x){} stStatus();
+ }
+});
+document.getElementById('you').addEventListener('click',async e=>{
+ const t=e.target.dataset&&e.target.dataset.tg;if(t!=='stauth'&&t!=='stpick')return;
+ try{if(t==='stauth')await ST.requestAuthorization();else await ST.pickApps()}catch(x){toast('Screen Time: '+(x.message||'not available'))}
+ stStatus();
+});
+/* optional: register for push so alerts reach you when the app is closed (needs native push + Cloud Function, see setup notes) */
+async function pushInit(){
+ if(!isNative||!me)return;
+ try{const PN=NP('PushNotifications');const p=await PN.requestPermissions();if(p.receive!=='granted')return;
+  PN.addListener('registration',t=>{set(ref(db,`users/${me.uid}/push`),{token:t.value,p:'ios',t:Date.now()})});await PN.register()}catch(e){}
+}
+setTimeout(pushInit,4000);
+
+
+/* =====================================================================================
+   IPHONE APP ONLY (runs only when isNative, i.e. inside the Capacitor iOS app).
+   >>> NOTE FOR ANY AI / DEVELOPER: DO NOT ADD THIS TO THE LAPTOP / WEB VERSION. <<<
+   What it does:
+   1) Free Apple-ID installs expire after 7 days. On day 6 the app opens an "Update" page
+      (and a local notification is scheduled for day 6) reminding the user to refresh/reinstall.
+   2) The admin (zezo) can send an update message to everyone (Firebase: app/update).
+      Users get an in-app page + notification. (The admin SENDER card is in the Admin tab.)
+   An app cannot re-sign itself: the real 7-day reset only happens when the user reinstalls
+   with iLoader / SideStore. The page's last step is a confirm button that resets the local timer.
+   ===================================================================================== */
+const IOS_UPDATE_URL='https://github.com/zezo20234/pomodoro/releases/latest/download/StudyTogether.ipa';/* optional default install link, e.g. 'sidestore://install?url=https://github.com/YOU/REPO/releases/latest/download/StudyTogether.ipa' */
+const REFRESH_DAYS=6,EXPIRE_DAYS=7,DAY=86400000;
+const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}return null};
+function refreshedAt(){let t=+ls('st_refreshed');if(!t){t=Date.now();ls('st_refreshed',t)}return t}
+async function clearWebCache(){try{if('serviceWorker' in navigator){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}}
+function scheduleExpiryNote(){
+ if(!isNative||!LN)return;
+ (async()=>{try{
+  await LN.cancel({notifications:[{id:700001},{id:700002}]});
+  const t=refreshedAt(),now=Date.now(),list=[];
+  if(t+REFRESH_DAYS*DAY>now)list.push({id:700001,title:'Time to refresh Study Together',body:'Your install expires tomorrow. Open the app and tap Update.',schedule:{at:new Date(t+REFRESH_DAYS*DAY)}});
+  if(t+(EXPIRE_DAYS*DAY)-6*3600000>now)list.push({id:700002,title:'Study Together expires soon',body:'Less than 6 hours left. Open the app to update now.',schedule:{at:new Date(t+EXPIRE_DAYS*DAY-6*3600000)}});
+  if(list.length)await LN.schedule({notifications:list});
+ }catch(e){}})();
+}
+function updHTML(){
+ const age=(Date.now()-refreshedAt())/DAY,left=Math.max(0,EXPIRE_DAYS-age),due=age>=REFRESH_DAYS,rel=updCur&&(+updCur.v||0)>(+ls('st_seen_upd')||0);
+ const leftTxt=left>=1?Math.floor(left)+' day'+(Math.floor(left)===1?'':'s')+' left':Math.max(0,Math.round(left*24))+' hours left';
+ const url=(updCur&&updCur.url)||IOS_UPDATE_URL;
+ return `<div class="box"><div class="big">${rel?'🆕':'⏳'}</div>
+ <h2>${rel?esc(updCur.title||'New update available'):'Time to refresh the app'}</h2>
+ <div class="mute">${due?'Your install lasts 7 days · '+leftTxt:'Installed '+Math.floor(age)+' day(s) ago'}</div>
+ ${rel&&updCur.msg?`<div class="note">${esc(updCur.msg)}</div>`:''}
+ <div class="note" id="updHelp">${url?'Tap <b>Update</b> to load the newest version and open the install link.':'Tap <b>Update</b> to load the newest version. To reset the 7-day limit, reinstall the app with iLoader / SideStore, then tap “I’ve updated”.'}</div>
+ <div class="acts"><button class="btn" id="updGo">Update</button><button class="btn alt hide" id="updDone">I’ve updated — reset 7-day timer</button><button class="btn alt" id="updLater">Later</button></div></div>`;
+}
+function showUpd(){if(!isNative||!me)return;document.getElementById('upd').innerHTML=updHTML();document.getElementById('upd').classList.remove('hide');updShown=true;try{hap('MEDIUM')}catch(e){}}
+function hideUpd(){document.getElementById('upd').classList.add('hide');updShown=false}
+function markSeen(){if(updCur)ls('st_seen_upd',String(+updCur.v||0))}
+document.getElementById('upd').addEventListener('click',async e=>{
+ const id=e.target.id;
+ if(id==='updLater'){updSnooze=Date.now()+60*60000;hideUpd()}
+ else if(id==='updGo'){
+  const url=(updCur&&updCur.url)||IOS_UPDATE_URL;markSeen();
+  await clearWebCache();
+  document.getElementById('updDone').classList.remove('hide');
+  if(url){try{const UP=isNative?NP('Updater'):null;if(UP)await UP.openUrl({url});else window.open(url,'_blank')}catch(x){try{window.open(url,'_blank')}catch(y){location.href=url}}document.getElementById('updHelp').textContent='Install link opened. Finish the install, come back, then tap “I’ve updated”.'}
+  else{document.getElementById('updHelp').innerHTML='Newest web version cached. Now reinstall with iLoader / SideStore if you want to reset the 7-day limit, then tap “I’ve updated”. <a href="#" id="updReload" style="color:var(--focus)">Reload now</a>'}
+ }
+ else if(id==='updReload'){e.preventDefault();location.replace(location.pathname+'?r='+Date.now())}
+ else if(id==='updDone'){ls('st_refreshed',String(Date.now()));markSeen();scheduleExpiryNote();hideUpd();toast('✅ 7-day timer reset')}
+});
+function updCheck(){
+ if(!isNative||!me||updShown||Date.now()<updSnooze)return;
+ const age=(Date.now()-refreshedAt())/DAY,rel=updCur&&(+updCur.v||0)>(+ls('st_seen_upd')||0);
+ if(age>=REFRESH_DAYS||rel)showUpd();
+}
+function startUpd(){
+ if(updOff)return;
+ updOff=onValue(ref(db,'app/update'),x=>{
+  const u=x.val();if(!u)return;
+  const fresh=(+u.v||0)>(+ls('st_seen_upd')||0);updCur=u;
+  if(isNative&&fresh){notify(u.title||'New update available',u.msg||'Open Study Together to update.');toast('🆕 '+(u.title||'New update available'))}
+  updCheck();
+ },()=>{});
+}
+/* Admin (zezo) sender. The sender card is intentionally available wherever the Admin tab exists. */
+function adminUpdCard(){
+ if(!me||me.uid!=='zezo'||document.getElementById('upsend'))return;
+ const sec=document.getElementById('a');if(!sec)return;
+ const c=document.createElement('div');c.id='upsend';c.className='card';c.style.marginBottom='12px';
+ c.innerHTML=`<h3>Send app update to everyone</h3><p class="mute" style="margin:0 0 10px">Phones with the iPhone app get a notification + an Update page the next time they open it.</p>
+ <input id="upt" placeholder="Title (e.g. New version is out)" maxlength="80" style="width:100%;margin-bottom:8px"><input id="upm" placeholder="Message (what’s new)" maxlength="200" style="width:100%;margin-bottom:8px"><input id="upu" placeholder="Install link" value="${IOS_UPDATE_URL}" maxlength="400" style="width:100%;margin-bottom:10px">
+ <button class="btn" id="upgo">Send update now</button><p class="mute" id="ups" style="margin:8px 0 0"></p>`;
+ sec.insertBefore(c,sec.children[2]||null);
+ document.getElementById('upgo').onclick=async()=>{
+  const st=document.getElementById('ups');
+  const rec={v:Date.now(),title:document.getElementById('upt').value.trim()||'New update available',msg:document.getElementById('upm').value.trim(),url:document.getElementById('upu').value.trim(),by:me.name};
+  try{await set(ref(db,'app/update'),rec);st.textContent='✅ Sent. Everyone gets it next time the app is open.'}catch(err){st.textContent='Could not send: '+err.message+' (add a database rule for app/update, see notes)'}
+ };
+}
+setInterval(()=>{
+ /* watchdog: if the stats never arrive after (re)loading, re-subscribe */
+ if(me&&!gotStats){if(!gotSince)gotSince=Date.now();else if(Date.now()-gotSince>6000&&gotTry<3){gotTry++;gotSince=Date.now();softRefresh()}}
+ if(me&&!updOff){startUpd();scheduleExpiryNote()}
+ if(!me&&updOff){updOff();updOff=null;updCur=null;hideUpd()}
+ adminUpdCard();updCheck();
+},2000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)updCheck()});
+
+
+/* ---------- iPhone self-healing connection ----------
+   When iOS suspends the app its Firebase websocket can die silently, leaving stats blank until you log out/in.
+   hardRefresh() drops and re-opens the connection, then re-subscribes everything. It runs from the Refresh button,
+   when the app comes back after being in the background, when the connection drops and returns, and from the watchdog. */
+function hardRefresh(){
+ if(healing)return;healing=true;
+ try{flush()}catch(e){}
+ try{goOffline(db)}catch(e){}
+ setTimeout(()=>{
+  try{goOnline(db)}catch(e){}
+  setTimeout(()=>{try{if(me)softRefresh()}catch(e){console.error(e)}gotTry=0;gotSince=Date.now();healing=false},500);
+ },300);
+}
+if(isNative){
+ onValue(ref(db,'.info/connected'),x=>{const c=!!x.val();if(wasConn===false&&c&&me&&!healing){try{softRefresh()}catch(e){console.error(e)}}wasConn=c},()=>{});
+ document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){hiddenAt=Date.now();return}
+  if(me&&hiddenAt&&Date.now()-hiddenAt>15000)hardRefresh();
+  hiddenAt=0;
+ });
+ window.addEventListener('pageshow',e=>{if(e.persisted&&me)hardRefresh()});
+}
+</script></main></body></html>

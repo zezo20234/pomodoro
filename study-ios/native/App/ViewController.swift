@@ -1,0 +1,10 @@
+import UIKit
+import Capacitor
+
+class ViewController: CAPBridgeViewController {
+    override func capacitorDidLoad() {
+        bridge?.registerPluginInstance(LiveActivityPlugin())
+        bridge?.registerPluginInstance(ScreenTimePlugin())
+        bridge?.registerPluginInstance(UpdaterPlugin())
+    }
+}
